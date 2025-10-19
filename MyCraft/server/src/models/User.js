@@ -6,7 +6,7 @@ const userSchema = new mongoose.Schema({
         type: String,
         required: [true, "Tên đăng nhập là bắt buộc"],
         unique: true,
-        minlength: [4, "Tên đăng nhập ít nhất 4 ký tự"],
+        minlength: [6, "Tên đăng nhập ít nhất 6 ký tự"],
         maxlength: [30, "Tên đăng nhập tối đa 30 ký tự"],
         trim: true,
         lowercase: true
@@ -14,19 +14,29 @@ const userSchema = new mongoose.Schema({
     password: {
         type: String,
         required: [true, "Mật khẩu là bắt buộc"],
-        minlength: [8, "Mật khẩu ít nhất 8 ký tự"]
+        minlength: [8, "Mật khẩu ít nhất 8 ký tự"],
+        match: [
+            /^(?=.*[a-z])(?=.*[A-Z])(?=.*[\W_]).{8,}$/,
+            "Mật khẩu phải chứa ít nhất 1 chữ hoa, 1 chữ thường và 1 ký tự đặc biệt"
+        ]
     },
     name: {
         type: String,
         required: [true, "Họ tên là bắt buộc"],
+        match: [
+            /^[A-Za-zÀ-ỹ\s]+ [A-Za-zÀ-ỹ\s]+$/,
+            "Họ tên phải gồm ít nhất hai từ và chỉ chứa chữ cái"
+        ],
         trim: true
     },
     address: {
         type: String,
+        required: [true, "Địa chỉ là bắt buộc"],
         default: ""
     },
     phone: {
         type: String,
+        required: [true, "Số điện thoại là bắt buộc"],
         validate: {
             validator: function (v) {
                 return /^0[0-9]{9,10}$/.test(v);
