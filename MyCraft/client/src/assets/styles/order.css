@@ -1,0 +1,241 @@
+/* src/assets/styles/order.css */
+.order-history-container,
+.checkout-container {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.order-card {
+    background: white;
+    border: 1px solid #e0e0e0;
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 24px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    transition: transform 0.2s;
+}
+
+.order-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
+}
+
+.order-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+    padding-bottom: 10px;
+    border-bottom: 1px dashed #ddd;
+}
+
+.order-header strong {
+    color: #1976d2;
+    font-size: 1.1rem;
+}
+
+.status {
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.status.pending {
+    background: #fff3e0;
+    color: #f57c00;
+}
+
+.status.completed {
+    background: #e8f5e8;
+    color: #2e7d32;
+}
+
+.status.cancelled {
+    background: #ffebee;
+    color: #c62828;
+}
+
+.total {
+    font-weight: 600;
+    font-size: 1.1rem;
+    color: #d32f2f;
+    text-align: right;
+    margin-top: 12px;
+}
+
+.order-actions {
+    margin-top: 16px;
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+}
+
+.edit-btn,
+.cancel-btn {
+    padding: 7px 14px;
+    border: none;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.edit-btn {
+    background: #2196F3;
+    color: white;
+}
+
+.edit-btn:hover {
+    background: #1976d2;
+}
+
+.cancel-btn {
+    background: #f44336;
+    color: white;
+}
+
+.cancel-btn:hover {
+    background: #d32f2f;
+}
+
+/* === CHECKOUT === */
+.section {
+    margin-bottom: 2rem;
+}
+
+.user-info,
+.edit-form {
+    padding: 1rem;
+    background: #f8fafc;
+    border-radius: 8px;
+}
+
+.edit-form input,
+.edit-form textarea {
+    margin: 8px 0;
+}
+
+.form-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+    margin-top: 10px;
+}
+
+.form-actions button {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 6px;
+    font-weight: 600;
+}
+
+.form-actions button:first-child {
+    background: #94a3b8;
+    color: white;
+}
+
+.form-actions .primary {
+    background: #2196F3;
+    color: white;
+}
+
+.checkout-actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: flex-end;
+    margin-top: 2rem;
+    flex-wrap: wrap;
+}
+
+.place-order-btn {
+    background: #2196F3;
+    color: white;
+    padding: 0.9rem 2rem;
+    border: none;
+    border-radius: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(33, 150, 243, 0.3);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.checkout-actions .back-button {
+    background: transparent;
+    color: #2196F3;
+    padding: 0.5rem 1rem;
+    border: 2px solid #2196F3;
+    border-radius: 12px;
+    font-weight: 500;
+    text-decoration: none;
+}
+
+.checkout-actions .back-button:hover {
+    background: #e3f2fd;
+    color: #1976D2;
+    border-color: #1976D2;
+}
+
+.edit-address {
+    margin-top: 10px;
+}
+
+/* === COMBOBOX THANH TOÁN === */
+.payment-select-container {
+    margin: 1rem 0;
+}
+
+.payment-select {
+    width: 100%;
+    max-width: 400px;
+    padding: 0.75rem 1rem;
+    font-size: 0.95rem;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 8px;
+    background: white;
+    color: #1e293b;
+    cursor: pointer;
+    appearance: none;
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6,9 12,15 18,9'%3e%3c/polyline%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 1rem center;
+    background-size: 12px;
+    transition: border 0.2s, box-shadow 0.2s;
+}
+
+.payment-select:focus {
+    outline: none;
+    border-color: #2196F3;
+    box-shadow: 0 0 0 3px rgba(33, 150, 243, 0.15);
+}
+
+.payment-select option {
+    padding: 0.5rem;
+}
+
+
+
+/* css order */
+.qr-actions {
+    margin: 1rem 0;
+    text-align: center;
+}
+
+.qr-button {
+    background: #25D366;
+    color: white;
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-block;
+}
+
+.qr-button:hover {
+    background: #128C7E;
+}

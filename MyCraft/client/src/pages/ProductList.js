@@ -42,6 +42,10 @@ function ProductList() {
     }, [navigate, user?.userId]);
 
     const handleAddToCart = async (productId) => {
+        if (!user?.userId) {
+            navigate('/login', { state: { message: 'Vui lòng đăng nhập để thêm vào giỏ hàng' } });
+            return;
+        }
         try {
             await axios.post(
                 'http://localhost:5000/api/cart',
@@ -54,16 +58,31 @@ function ProductList() {
         }
     };
 
-    const handleBuyNow = (productId) => {
-        navigate('/checkout', { state: { selectedItems: [{ productId, quantity: 1 }] } });
-    };
+    // const handleBuyNow = (productId) => {
+    //     navigate('/checkout', { state: { selectedItems: [{ productId, quantity: 1 }] } });
+    // };
 
+    const handleBuyNow = (product) => {
+        if (!user?.userId) {
+            navigate('/login', { state: { message: 'Vui lòng đăng nhập để mua ngay' } });
+            return;
+        }
+        navigate('/checkout', {
+            state: {
+                selectedItems: [{
+                    productId: product._id.toString(),
+                    quantity: 1
+                }]
+            }
+        });
+    };
     return (
         <div className="page-wrapper">
             <nav className="navbar">
                 <div className="container">
                     <Link to="/products">Sản phẩm</Link>
                     <Link to="/cart">Giỏ hàng</Link>
+                    <Link to="/orders">Đơn hàng</Link>
                     <button onClick={() => {
                         localStorage.removeItem('user');
                         navigate('/login');
@@ -100,7 +119,7 @@ function ProductList() {
                                                 to={`/product/${product._id}`}
                                                 className="view-details-button"
                                             >
-                                                Xem chi tiết
+                                                Xem
                                             </Link>
                                             <button
                                                 onClick={() => handleAddToCart(product._id)}
@@ -108,6 +127,14 @@ function ProductList() {
                                                 className="add-to-cart-button"
                                             >
                                                 Thêm vào giỏ
+                                            </button>
+
+                                            <button
+                                                onClick={() => handleBuyNow(product)}
+                                                disabled={product.stock === 0}
+                                                className="buy-now-button"
+                                            >
+                                                Mua
                                             </button>
                                         </div>
                                     </div>

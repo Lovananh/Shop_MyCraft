@@ -5,7 +5,7 @@ import axios from 'axios';
 
 function Cart() {
     const [cartItems, setCartItems] = useState([]);
-    const [selectedItems, setSelectedItems] = useState([]);
+    const [selectedItems, setSelectedItems] = useState([]); // ← MẢNG productId (string)
     const [error, setError] = useState(null);
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
@@ -26,8 +26,9 @@ function Cart() {
                     headers: { 'user-id': user.userId },
                 });
                 if (isMounted) {
-                    setCartItems(response.data.items || []);
-                    setSelectedItems(response.data.items.map(item => item.productId));
+                    const items = response.data.items || [];
+                    setCartItems(items);
+                    setSelectedItems(items.map(item => item.productId.toString()));
                     setError(null);
                 }
             } catch (err) {
@@ -42,15 +43,15 @@ function Cart() {
     }, [navigate, user?.userId]);
 
     const handleQuantityChange = async (productId, quantity) => {
-        if (quantity < 1) return;
+        const q = Math.max(1, parseInt(quantity) || 1);
         try {
             await axios.put(
                 'http://localhost:5000/api/cart',
-                { productId, quantity: parseInt(quantity) },
+                { productId: productId.toString(), quantity: q },
                 { headers: { 'user-id': user.userId } }
             );
             setCartItems(prev => prev.map(item =>
-                item.productId === productId ? { ...item, quantity: parseInt(quantity) } : item
+                item.productId === productId ? { ...item, quantity: q } : item
             ));
         } catch (err) {
             setError(err.response?.data?.message || 'Lỗi khi cập nhật số lượng');
@@ -58,23 +59,61 @@ function Cart() {
     };
 
     const handleSelectItem = (productId) => {
+        const idStr = productId.toString();
         setSelectedItems(prev =>
-            prev.includes(productId)
-                ? prev.filter(id => id !== productId)
-                : [...prev, productId]
+            prev.includes(idStr)
+                ? prev.filter(id => id !== idStr)
+                : [...prev, idStr]
         );
     };
 
     const totalPrice = cartItems
-        .filter(item => selectedItems.includes(item.productId))
+        .filter(item => selectedItems.includes(item.productId.toString()))
         .reduce((sum, item) => sum + item.price * item.quantity, 0);
 
+    // SỬA: LẤY THÔNG TIN TỪ cartItems, KHÔNG TỪ selectedItems
     const handleCheckout = () => {
         if (selectedItems.length === 0) {
-            alert('Vui lòng chọn ít nhất một sản phẩm để thanh toán');
+            alert('Vui lòng chọn ít nhất 1 sản phẩm');
             return;
         }
-        navigate('/checkout', { state: { selectedItems } });
+
+        // LẤY SẢN PHẨM ĐÃ CHỌN TỪ cartItems
+        const selectedFullItems = cartItems
+            .filter(item => selectedItems.includes(item.productId.toString()))
+            .map(item => ({
+                productId: item.productId,
+                name: item.name,
+                price: item.price,
+                imageUrl: item.imageUrl,
+                quantity: item.quantity
+            }));
+
+        if (selectedFullItems.length === 0) {
+            alert('Không có sản phẩm hợp lệ để thanh toán');
+            return;
+        }
+
+        navigate('/checkout', {
+            state: {
+                selectedItems: selectedFullItems,
+                fromCart: true
+            }
+        });
+    };
+
+    const handleRemoveItem = async (productId) => {
+        try {
+            await axios.delete(
+                `http://localhost:5000/api/cart/${productId.toString()}`,
+                { headers: { 'user-id': user.userId } },
+            );
+
+            setCartItems(prev => prev.filter(item => item.productId !== productId));
+            setSelectedItems(prev => prev.filter(id => id !== productId.toString()));
+        } catch (err) {
+            setError(err.response?.data?.message || 'Lỗi khi xóa');
+        }
     };
 
     return (
@@ -83,6 +122,7 @@ function Cart() {
                 <div className="container">
                     <Link to="/products">Sản phẩm</Link>
                     <Link to="/cart">Giỏ hàng</Link>
+                    <Link to="/orders">Đơn hàng</Link>
                     <button onClick={() => {
                         localStorage.removeItem('user');
                         navigate('/login');
@@ -96,7 +136,12 @@ function Cart() {
                     {error && <p className="error">{error}</p>}
                     {loading && <p>Đang tải...</p>}
                     {!loading && cartItems.length === 0 ? (
-                        <p>Giỏ hàng trống</p>
+                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                            <p style={{ textAlign: 'center' }}>Chưa có sản phẩm nào trong giỏ hàng, hãy trở lại trang chủ để thêm vào giỏ hàng</p>
+                            <button style={{ width: '150px', marginTop: '20px' }} onClick={() => navigate('/')} className="back-button-in-cart">
+                                Trang chủ
+                            </button>
+                        </div>
                     ) : (
                         <div>
                             <table className="cart-table">
@@ -108,6 +153,7 @@ function Cart() {
                                         <th>Số lượng</th>
                                         <th>Giá</th>
                                         <th>Tổng</th>
+                                        <th>Xóa</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -116,7 +162,7 @@ function Cart() {
                                             <td>
                                                 <input
                                                     type="checkbox"
-                                                    checked={selectedItems.includes(item.productId)}
+                                                    checked={selectedItems.includes(item.productId.toString())}
                                                     onChange={() => handleSelectItem(item.productId)}
                                                 />
                                             </td>
@@ -139,6 +185,15 @@ function Cart() {
                                             </td>
                                             <td>{item.price.toLocaleString()} VNĐ</td>
                                             <td>{(item.price * item.quantity).toLocaleString()} VNĐ</td>
+                                            <td>
+                                                <button
+                                                    onClick={() => handleRemoveItem(item.productId)}
+                                                    className="action-button delete"
+                                                    style={{ padding: '0.25rem 0.5rem', fontSize: '0.8rem' }}
+                                                >
+                                                    Xóa
+                                                </button>
+                                            </td>
                                         </tr>
                                     ))}
                                 </tbody>

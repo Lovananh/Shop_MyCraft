@@ -34,12 +34,36 @@ function Home() {
         return () => { isMounted = false; };
     }, []);
 
-    const handleBuyNow = (productId) => {
+    const handleBuyNow = (product) => {
         if (!user?.userId) {
             navigate('/login', { state: { message: 'Vui lòng đăng nhập để mua ngay' } });
             return;
         }
-        navigate('/checkout', { state: { selectedItems: [{ productId, quantity: 1 }] } });
+        navigate('/checkout', {
+            state: {
+                selectedItems: [{
+                    productId: product._id.toString(),
+                    quantity: 1
+                }]
+            }
+        });
+    };
+
+    const handleAddToCart = async (productId) => {
+        if (!user?.userId) {
+            navigate('/login', { state: { message: 'Vui lòng đăng nhập để thêm vào giỏ hàng' } });
+            return;
+        }
+        try {
+            await axios.post(
+                'http://localhost:5000/api/cart',
+                { productId, quantity: 1 },
+                { headers: { 'user-id': user.userId } }
+            );
+            alert('Đã thêm vào giỏ hàng!');
+        } catch (err) {
+            setError(err.response?.data?.message || 'Lỗi khi thêm vào giỏ hàng');
+        }
     };
 
     return (
@@ -50,6 +74,7 @@ function Home() {
                         <>
                             <Link to="/products">Sản phẩm</Link>
                             <Link to="/cart">Giỏ hàng</Link>
+                            <Link to="/orders">Đơn hàng</Link>
                             <button onClick={() => {
                                 localStorage.removeItem('user');
                                 navigate('/login');
@@ -90,14 +115,23 @@ function Home() {
                                                 to={`/product/${product._id}`}
                                                 className="view-details-button"
                                             >
-                                                Xem chi tiết
+                                                Xem
                                             </Link>
+
                                             <button
-                                                onClick={() => handleBuyNow(product._id)}
+                                                onClick={() => handleAddToCart(product._id)}
+                                                disabled={product.stock === 0}
+                                                className="add-to-cart-button"
+                                            >
+                                                Thêm vào giỏ
+                                            </button>
+
+                                            <button
+                                                onClick={() => handleBuyNow(product)}
                                                 disabled={product.stock === 0}
                                                 className="buy-now-button"
                                             >
-                                                Mua ngay
+                                                Mua
                                             </button>
                                         </div>
                                     </div>
