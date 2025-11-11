@@ -1,3 +1,4 @@
+// server/models/Order.js
 const mongoose = require('mongoose');
 
 const orderItemSchema = new mongoose.Schema({
@@ -38,14 +39,58 @@ const orderSchema = new mongoose.Schema({
         unique: true,
     },
     items: [orderItemSchema],
+
+    // === TÊN, SĐT, ĐỊA CHỈ ===
+    name: {
+        type: String,
+        required: [true, 'Tên người nhận là bắt buộc'],
+        trim: true,
+    },
+    phone: {
+        type: String,
+        required: [true, 'Số điện thoại là bắt buộc'],
+        trim: true,
+        match: [/^0[3|5|7|8|9]\d{8}$/, 'Số điện thoại không hợp lệ (VD: 0901234567)'],
+    },
+    address: {
+        type: String,
+        required: [true, 'Địa chỉ giao hàng là bắt buộc'],
+        trim: true,
+    },
+    // ===========================================
+
+    total: {
+        type: Number,
+        required: [true, 'Tổng tiền là bắt buộc'],
+        min: [0, 'Tổng tiền không được âm'],
+    },
+
+    // === CẬP NHẬT: 5 TRẠNG THÁI MỚI ===
     status: {
         type: String,
         enum: {
-            values: ['pending', 'completed', 'cancelled'],
-            message: 'Trạng thái phải là "pending", "completed", hoặc "cancelled"',
+            values: ['pending', 'processing', 'shipping', 'completed', 'cancelled'],
+            message: 'Trạng thái phải là một trong: pending, processing, shipping, completed, cancelled',
         },
         default: 'pending',
     },
+
+    paymentMethod: {
+        type: String,
+        enum: ['cod', 'qr'],
+        default: 'cod',
+        required: true
+    },
+
+    paymentStatus: {
+        type: String,
+        enum: ['unpaid', 'paid', 'refunded'],
+        default: 'unpaid',
+        required: true
+    },
+
+    paymentLinkId: { type: String },
+
     createdAt: {
         type: Date,
         default: Date.now,
