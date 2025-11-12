@@ -45,22 +45,34 @@ function App() {
 }
 
 function ProtectedRoute({ component: Component, role }) {
+    const token = localStorage.getItem('token');
+    const userRole = localStorage.getItem('role');
     const navigate = useNavigate();
-    const user = JSON.parse(localStorage.getItem('user') || 'null');
+    // const user = JSON.parse(localStorage.getItem('user') || 'null');
+
 
     useEffect(() => {
-        if (!user || !user.userId) {               // <-- kiểm tra userId
-            navigate('/login', { state: { message: 'Vui lòng đăng nhập' } });
-        } else if (role === 'admin' && user.role !== 'admin') {
-            navigate('/products', { state: { message: 'Chỉ admin mới có quyền truy cập' } });
-        } else if (role === 'user' && user.role === 'admin') {
-            navigate('/admin');
+        if (!token) navigate('/login');
+        else if (role && userRole !== role) {
+            navigate(userRole === 'admin' ? '/admin' : '/');
         }
-    }, [navigate, user, role]);
+    }, [token, userRole, role, navigate]);
+
+
+    // useEffect(() => {
+    //     if (!user || !user.userId) {               // <-- kiểm tra userId
+    //         navigate('/login', { state: { message: 'Vui lòng đăng nhập' } });
+    //     } else if (role === 'admin' && user.role !== 'admin') {
+    //         navigate('/products', { state: { message: 'Chỉ admin mới có quyền truy cập' } });
+    //     } else if (role === 'user' && user.role === 'admin') {
+    //         navigate('/admin');
+    //     }
+    // }, [navigate, user, role]);
 
     // Render chỉ khi đủ điều kiện
-    if (!user || !user.userId) return null;
-    if (role && user.role !== role) return null;
+    // if (!user || !user.userId) return null;
+    // if (role && user.role !== role) return null;
+    if (!token || (role && userRole !== role)) return null;
     return <Component />;
 }
 

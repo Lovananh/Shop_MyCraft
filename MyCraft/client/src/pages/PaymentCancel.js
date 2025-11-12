@@ -7,7 +7,7 @@ function PaymentCancel() {
 
     useEffect(() => {
         localStorage.removeItem('pendingOrder');
-        alert('Bạn đã hủy thanh toán QR. Giỏ hàng vẫn còn.');
+        // alert('Bạn đã hủy thanh toán QR. Giỏ hàng vẫn còn.');
         navigate('/cart');
     }, [navigate]);
 

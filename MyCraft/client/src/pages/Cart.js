@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import axios from 'axios';
+import { useAuth } from '../hooks/useAuth';
 
 function Cart() {
     const [cartItems, setCartItems] = useState([]);
@@ -9,10 +10,12 @@ function Cart() {
     const [error, setError] = useState(null);
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
-    const user = JSON.parse(localStorage.getItem('user') || 'null');
+    // const user = JSON.parse(localStorage.getItem('user') || 'null');
+    const { token, role, logout } = useAuth();
 
     useEffect(() => {
-        if (!user?.userId) {
+        // if (!user?.userId) {
+        if (!token) {
             navigate('/login', { state: { message: 'Vui lòng đăng nhập để xem giỏ hàng' } });
             return;
         }
@@ -23,7 +26,8 @@ function Cart() {
             setLoading(true);
             try {
                 const response = await axios.get('http://localhost:5000/api/cart', {
-                    headers: { 'user-id': user.userId },
+                    // headers: { 'user-id': user.userId },
+                    headers: { Authorization: `Bearer ${token}` }
                 });
                 if (isMounted) {
                     const items = response.data.items || [];
@@ -40,7 +44,8 @@ function Cart() {
 
         fetchCart();
         return () => { isMounted = false; };
-    }, [navigate, user?.userId]);
+        // }, [navigate, user?.userId]);
+    }, [navigate, token]);
 
     const handleQuantityChange = async (productId, quantity) => {
         const q = Math.max(1, parseInt(quantity) || 1);
@@ -48,7 +53,8 @@ function Cart() {
             await axios.put(
                 'http://localhost:5000/api/cart',
                 { productId: productId.toString(), quantity: q },
-                { headers: { 'user-id': user.userId } }
+                // { headers: { 'user-id': user.userId } }
+                { headers: { Authorization: `Bearer ${token}` } }
             );
             setCartItems(prev => prev.map(item =>
                 item.productId === productId ? { ...item, quantity: q } : item
@@ -106,7 +112,8 @@ function Cart() {
         try {
             await axios.delete(
                 `http://localhost:5000/api/cart/${productId.toString()}`,
-                { headers: { 'user-id': user.userId } },
+                // { headers: { 'user-id': user.userId } },
+                { headers: { Authorization: `Bearer ${token}` } }
             );
 
             setCartItems(prev => prev.filter(item => item.productId !== productId));
@@ -123,11 +130,11 @@ function Cart() {
                     <Link to="/products">Sản phẩm</Link>
                     <Link to="/cart">Giỏ hàng</Link>
                     <Link to="/orders">Đơn hàng</Link>
+                    <Link to="/profile">Cá nhân</Link>
                     <button onClick={() => {
                         localStorage.removeItem('user');
                         navigate('/login');
                     }}>Đăng xuất</button>
-                    <Link to="/profile">Cá nhân</Link>
                 </div>
             </nav>
 

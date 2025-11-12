@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import { useAuth } from '../hooks/useAuth';
 
 function Login() {
     const [username, setUsername] = useState('');
@@ -9,14 +10,15 @@ function Login() {
     const [error, setError] = useState(null);
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
-    const user = JSON.parse(localStorage.getItem('user') || 'null');
+    // const user = JSON.parse(localStorage.getItem('user') || 'null');
+    const { token, role } = useAuth();
 
     useEffect(() => {
-        if (user?.userId) {
-            console.log('Đã đăng nhập:', user);
-            navigate(user.role === 'admin' ? '/admin' : '/');
+        if (token) {
+            console.log('Đã đăng nhập:', token);
+            navigate(role === 'admin' ? '/admin' : '/');
         }
-    }, [navigate, user]);
+    }, [navigate, token, role]);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -30,17 +32,25 @@ function Login() {
                 password,
             });
 
-            // DỮ LIỆU PHẢI CÓ: _id, username, role
-            const userData = {
-                userId: response.data._id,        // ← DÙNG _id
-                username: response.data.username,
-                role: response.data.role || 'user',
-            };
+            // const userData = {
+            //     userId: response.data._id,  
+            //     username: response.data.username,
+            //     role: response.data.role || 'user',
+            // };
 
-            console.log('Lưu user vào localStorage:', userData);
-            localStorage.setItem('user', JSON.stringify(userData));
+            // console.log('Lưu user vào localStorage:', userData);
+            // localStorage.setItem('user', JSON.stringify(userData));
+            // navigate(userData.role === 'admin' ? '/admin' : '/');
+            const { token, role } = response.data;
 
-            navigate(userData.role === 'admin' ? '/admin' : '/');
+            if (!token || !role) {
+                throw new Error('Phản hồi từ server không hợp lệ');
+            }
+
+            localStorage.setItem('token', token);
+            localStorage.setItem('role', role);
+            navigate(role === 'admin' ? '/admin' : '/');
+
         } catch (err) {
             setError(err.response?.data?.message || 'Sai tên đăng nhập hoặc mật khẩu');
             console.error('Lỗi đăng nhập:', err.response?.data);
