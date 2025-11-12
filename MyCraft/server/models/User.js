@@ -34,6 +34,10 @@ const userSchema = new mongoose.Schema({
         trim: true,
         match: [/^(?:\+84|0)(?:3[2-9]|5[689]|7[06-9]|8[1-9]|9[0-9])[0-9]{7}$/, 'Số điện thoại không hợp lệ (phải là số Việt Nam)'],
     },
+    avatar: {
+        type: String,
+        default: 'https://place.dog/100/100', // Ảnh mặc định
+    },
     role: {
         type: String,
         enum: ['user', 'admin'],
