@@ -15,6 +15,10 @@ const userSchema = new mongoose.Schema({
         type: String,
         required: [true, 'Mật khẩu là bắt buộc'],
         minlength: [8, 'Mật khẩu phải có ít nhất 8 ký tự'],
+        match: [
+            /^(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?])[A-Za-z\d!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]{8,}$/,
+            'Mật khẩu phải chứa ít nhất 1 chữ hoa, 1 số và 1 ký tự đặc biệt'
+        ]
     },
     name: {
         type: String,

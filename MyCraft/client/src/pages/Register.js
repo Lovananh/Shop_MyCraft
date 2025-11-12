@@ -32,11 +32,17 @@ function Register() {
             setLoading(false);
             return;
         }
-        if (formData.password.length < 8) {
-            setError('Mật khẩu phải ≥ 8 ký tự');
-            setLoading(false);
-            return;
-        }
+        // === VALIDATE MẬT KHẨU MẠNH (đồng bộ với server) ===
+    // === VALIDATE MẬT KHẨU MẠNH (dùng new RegExp để tránh ESLint warning) ===
+    const passwordRegex = new RegExp(
+        '^(?=.*[A-Z])(?=.*\\d)(?=.*[!@#$%^&*()_+\\-=\\[\\]{};:"\\\\|,.<>/?]).{8,}$'
+    );
+
+    if (!passwordRegex.test(formData.password)) {
+        setError('Mật khẩu phải ≥8 ký tự, có ít nhất 1 chữ hoa, 1 số và 1 ký tự đặc biệt');
+        setLoading(false);
+        return;
+    }
         if (!/^[a-zA-ZÀ-ỹ\s]{2,100}$/.test(formData.name)) {
             setError('Tên chỉ chứa chữ cái và dấu cách, 2-100 ký tự');
             setLoading(false);
