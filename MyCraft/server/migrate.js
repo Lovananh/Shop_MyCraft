@@ -100,14 +100,15 @@ console.log('KẾT NỐI ĐẾN:', MONGO_URI);
 
         // LẤY userId TỪ _id TỰ SINH
         const demoUser = savedUsers.find(u => u.username === 'user');
-        console.log(`Demo userId: ${demoUser.userId}`); // → ObjectId string
+        const demoUserId = demoUser._id.toString();
+        console.log(`Demo userId: ${demoUserId}`);
 
         // --- GIỎ HÀNG MẪU ---
         const product2 = savedProducts[1]; // Móc khóa
         const product4 = savedProducts[3]; // Thiệp
 
         await Cart.create({
-            userId: demoUser.userId,
+            userId: demoUserId,
             items: [
                 {
                     productId: product2._id.toString(),
@@ -135,7 +136,7 @@ console.log('KẾT NỐI ĐẾN:', MONGO_URI);
 
         // Đơn 1: Chờ xử lý (COD)
         await Order.create({
-            userId: demoUser.userId,
+            userId: demoUserId,
             orderId: `ORDER_${Date.now()}_001`,
             items: [
                 {
@@ -157,7 +158,7 @@ console.log('KẾT NỐI ĐẾN:', MONGO_URI);
 
         // Đơn 2: Đã thanh toán QR + Hoàn thành
         await Order.create({
-            userId: demoUser.userId,
+            userId: demoUserId,
             orderId: `ORDER_${Date.now()}_002`,
             items: [
                 {
@@ -179,7 +180,7 @@ console.log('KẾT NỐI ĐẾN:', MONGO_URI);
 
         // Đơn 3: Đã hủy
         await Order.create({
-            userId: demoUser.userId,
+            userId: demoUserId,
             orderId: `ORDER_${Date.now()}_003`,
             items: [
                 {
@@ -206,7 +207,7 @@ console.log('KẾT NỐI ĐẾN:', MONGO_URI);
         console.log('\nTÀI KHOẢN TEST:');
         console.log('   - Username: user     | Mật khẩu: 12345');
         console.log('   - Username: admin    | Mật khẩu: 12345');
-        console.log(`   - Demo userId: ${demoUser.userId}`);
+        console.log(`   - Demo userId: ${demoUserId}`);
         console.log('\nDỮ LIỆU ĐÃ SẴN SÀNG!');
 
     } catch (err) {
