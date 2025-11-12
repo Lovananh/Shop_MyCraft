@@ -64,6 +64,12 @@ router.post('/remove-selected', async (req, res) => {
 });
 
 router.post('/', async (req, res) => {
+    const { productId, quantity } = req.body;
+    const userId = req.headers['user-id'];
+
+    if (!userId) return res.status(401).json({ message: 'Chưa đăng nhập' }); // BẮT BUỘC
+    if (!productId || !quantity) return res.status(400).json({ message: 'Thiếu thông tin' });
+
     try {
         const userId = req.headers['user-id'];
         const { productId, quantity } = req.body;
@@ -105,6 +111,26 @@ router.post('/', async (req, res) => {
         res.status(500).json({ message: err.message });
     }
 });
+
+router.delete('/:productId', async (req, res) => {
+    try {
+        const userId = req.headers['user-id'];
+        const { productId } = req.params;
+        if (!userId) return res.status(401).json({ message: 'Thiếu user-id' });
+        if (!productId) return res.status(400).json({ message: 'productId là bắt buộc' });
+
+        const cart = await Cart.findOne({ userId });
+        if (!cart) return res.status(404).json({ message: 'Không tìm thấy giỏ hàng' });
+
+        cart.items = cart.items.filter(i => i.productId !== productId);
+        await cart.save();
+
+        res.json(cart);
+    } catch (err) {
+        res.status(500).json({ message: err.message });
+    }
+});
+
 
 router.put('/', async (req, res) => {
     try {

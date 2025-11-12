@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const multer = require('multer');
 const path = require('path');
-// const checkAdmin = require('../middleware/checkAdmin');
+const checkAdmin = require('../middleware/checkAdmin');
 
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
@@ -25,9 +25,7 @@ const upload = multer({
     },
 });
 
-// router.post('/', checkAdmin, upload.single('image'), (req, res) => {
-
-router.post('/', upload.single('image'), (req, res) => {
+router.post('/', checkAdmin, upload.single('image'), (req, res) => {
     try {
         if (!req.file) {
             return res.status(400).json({ message: 'Vui lòng chọn tệp hình ảnh' });
