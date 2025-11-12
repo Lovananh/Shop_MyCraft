@@ -16,7 +16,7 @@ import AdminProducts from './pages/admin/AdminProducts'
 import AdminUsers from './pages/admin/AdminUsers'
 import PaymentSuccess from './pages/PaymentSuccess';
 import PaymentCancel from './pages/PaymentCancel';
-
+import Profile from './pages/Profile';
 
 function App() {
     return (
@@ -38,6 +38,7 @@ function App() {
                 </Route>
                 <Route path="/payment/success" element={<PaymentSuccess />} />
                 <Route path="/payment/cancel" element={<PaymentCancel />} />
+                <Route path="/profile" element={<Profile />} />
             </Routes>
         </Router>
     );

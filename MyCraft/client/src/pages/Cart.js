@@ -127,6 +127,7 @@ function Cart() {
                         localStorage.removeItem('user');
                         navigate('/login');
                     }}>Đăng xuất</button>
+                    <Link to="/profile">Cá nhân</Link>
                 </div>
             </nav>
 
