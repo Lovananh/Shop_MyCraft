@@ -1,0 +1,255 @@
+/* src/assets/styles/admin.css */
+.page-wrapper-admin {
+    min-width: 1200px;
+    max-width: 1300px;
+    margin: 25px auto;
+    /* padding: 1.5rem; */
+}
+
+.admin-dashboard {
+    display: flex;
+    min-height: 100vh;
+}
+
+.sidebar {
+    width: 240px;
+    background: #1a1a1a;
+    color: white;
+    padding: 1.5rem;
+}
+
+.sidebar h3 {
+    margin: 0 0 1.5rem;
+    font-size: 1.5rem;
+    text-align: center;
+    color: #2196F3;
+}
+
+.sidebar-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.sidebar-buttons .button-link {
+    width: 100%;
+    text-decoration: none;
+}
+
+.sidebar-buttons button {
+    width: 100%;
+    text-align: left;
+    background: #333;
+    color: white;
+    padding: 0.75rem;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.sidebar-buttons button:hover,
+.sidebar-buttons button.active {
+    background: #2196F3;
+}
+
+.main-content {
+    flex: 1;
+    padding: 1.5rem;
+    background: #f9f9f9;
+}
+
+.admin-section {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    margin-bottom: 1.5rem;
+}
+
+/* Form rộng hơn */
+.product-form {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+    max-width: 900px;
+    /* ← Tăng từ 600 → 800 */
+    margin-bottom: 2.5rem;
+}
+
+.form-buttons {
+    grid-column: span 2;
+    display: flex;
+    gap: 1rem;
+    justify-content: flex-end;
+}
+
+/* Bảng rộng hơn */
+.product-table,
+.order-items-table {
+    font-size: 0.95rem;
+    min-width: 800px;
+}
+
+/* Responsive: Ẩn sidebar nếu màn hình < 1300px */
+@media (max-width: 1320px) {
+    .sidebar {
+        position: fixed;
+        left: -300px;
+        top: 0;
+        height: 100vh;
+        z-index: 1000;
+        transition: left 0.3s ease;
+    }
+
+    .sidebar.open {
+        left: 0;
+    }
+
+    .main-content {
+        margin-left: 0;
+    }
+}
+
+/* TRẠNG THÁI ĐƠN HÀNG */
+.status {
+    padding: 0.35rem 0.75rem;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-transform: capitalize;
+    display: inline-block;
+    min-width: 80px;
+    text-align: center;
+}
+
+.status.pending {
+    background: #fff3cd;
+    color: #856404;
+    border: 1px solid #ffeaa7;
+}
+
+.status.processing {
+    background: #d1ecf1;
+    color: #0c5460;
+    border: 1px solid #b8daff;
+}
+
+.status.shipping {
+    background: #cce5ff;
+    color: #004085;
+    border: 1px solid #99d3ff;
+}
+
+.status.completed {
+    background: #d4edda;
+    color: #155724;
+    border: 1px solid #a3e4b0;
+}
+
+.status.cancelled {
+    background: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+}
+
+/* NÚT HÀNH ĐỘNG */
+.action-button {
+    padding: 0.5rem 1rem;
+    border: none;
+    border-radius: 6px;
+    color: white;
+    font-weight: 600;
+    cursor: pointer;
+    margin-right: 0.5rem;
+    transition: all 0.2s;
+}
+
+.action-button.confirm {
+    background: #17a2b8;
+}
+
+.action-button.ship {
+    background: #007bff;
+}
+
+.action-button.complete {
+    background: #28a745;
+}
+
+.action-button.delete {
+    background: #dc3545;
+}
+
+.action-button:hover {
+    opacity: 0.9;
+    transform: translateY(-1px);
+}
+
+/* === OVERVIEW GRID === */
+.overview-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1.5rem;
+    margin-top: 1.5rem;
+}
+
+.stat-card {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    text-align: center;
+    transition: transform 0.2s;
+}
+
+.stat-card:hover {
+    transform: translateY(-4px);
+}
+
+.stat-card.large {
+    grid-column: span 2;
+}
+
+.stat-icon {
+    font-size: 2rem;
+    margin-bottom: 0.75rem;
+}
+
+.stat-icon.blue {
+    color: #2196F3;
+}
+
+.stat-icon.green {
+    color: #4CAF50;
+}
+
+.stat-icon.orange {
+    color: #FF9800;
+}
+
+.stat-icon.purple {
+    color: #9C27B0;
+}
+
+.stat-icon.gold {
+    color: #FFC107;
+}
+
+.stat-icon.red {
+    color: #F44336;
+}
+
+.stat-value {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: #1a1a1a;
+    margin: 0.5rem 0;
+}
+
+.stat-label {
+    color: #666;
+    font-size: 0.95rem;
+    font-weight: 500;
+}

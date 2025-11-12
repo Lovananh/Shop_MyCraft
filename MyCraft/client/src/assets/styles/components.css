@@ -1,0 +1,199 @@
+/* src/assets/styles/components.css */
+
+/* === NAVBAR === */
+.navbar {
+    background: #2196F3;
+    color: white;
+    padding: 1rem 0;
+    width: 100%;
+}
+
+.navbar .container {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 0 1.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+/* === BUTTONS (tất cả nút xanh) === */
+button,
+.navbar a,
+.navbar button,
+.submit-button,
+.add-to-cart-button,
+.buy-now-button,
+.view-details-button,
+.back-button,
+.checkout-button,
+.place-order-btn,
+.action-button {
+    background: #2196F3;
+    color: white;
+    padding: 0.35rem 1.05rem;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 0.95rem;
+    cursor: pointer;
+    text-decoration: none;
+    transition: background 0.2s ease;
+    display: inline-block;
+}
+
+button:hover,
+.navbar a:hover,
+.submit-button:hover,
+.add-to-cart-button:hover,
+.buy-now-button:hover,
+.view-details-button:hover,
+.back-button:hover,
+.checkout-button:hover,
+.place-order-btn:hover,
+.action-button:hover {
+    background: #1976D2;
+}
+
+button:disabled,
+.submit-button:disabled,
+.add-to-cart-button:disabled,
+.buy-now-button:disabled {
+    background: #94a3b8;
+    cursor: not-allowed;
+}
+
+/* Nút nhỏ */
+.action-button.edit,
+.action-button.delete {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.85rem;
+    margin: 0 2px;
+}
+
+.action-button.delete {
+    background: #f44336;
+}
+
+.action-button.delete:hover {
+    background: #d32f2f;
+}
+
+/* === INPUT & FORM === */
+.form-group {
+    margin-bottom: 1.25rem;
+    text-align: left;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 0.4rem;
+    font-weight: 500;
+}
+
+input,
+textarea,
+select {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    background: #fff;
+    transition: border 0.2s;
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+    outline: none;
+    border-color: #2196F3;
+    box-shadow: 0 0 0 3px rgba(33, 150, 243, 0.15);
+}
+
+.quantity-input {
+    width: 70px;
+    text-align: center;
+}
+
+/* === TABLE === */
+.table,
+.cart-table,
+.checkout-table,
+.product-table,
+.order-items-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: white;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    margin: 1rem 0;
+    font-size: 0.95rem;
+}
+
+.table th,
+.cart-table th,
+.checkout-table th,
+.product-table th,
+.order-items-table th {
+    background: #f1f5f9;
+    padding: 0.75rem;
+    text-align: left;
+    font-weight: 600;
+    color: #475569;
+}
+
+.table td,
+.cart-table td,
+.checkout-table td,
+.product-table td,
+.order-items-table td {
+    padding: 0.75rem;
+    border-top: 1px solid #e2e8f0;
+}
+
+.cart-image,
+.checkout-image,
+.order-item-img {
+    width: 50px;
+    height: 50px;
+    object-fit: cover;
+    border-radius: 6px;
+}
+
+/* === PAGINATION === */
+.pagination {
+    display: flex;
+    justify-content: center;
+    gap: 0.5rem;
+    margin: 1.5rem 0;
+}
+
+.pagination-button {
+    padding: 0.6rem 0.9rem;
+    border: 1.5px solid #e2e8f0;
+    background: white;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 500;
+    font-size: 0.9rem;
+}
+
+.pagination-button:hover {
+    border-color: #2196F3;
+}
+
+.pagination-button.active {
+    background: #2196F3;
+    color: white;
+    border-color: #2196F3;
+}
+
+.pagination-button:disabled {
+    background: #0171e1;
+    cursor: not-allowed;
+    opacity: 0.6;
+}

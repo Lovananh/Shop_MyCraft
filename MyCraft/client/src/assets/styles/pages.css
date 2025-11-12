@@ -1,0 +1,142 @@
+/* src/assets/styles/pages.css */
+
+/* === GRID SẢN PHẨM === */
+.product-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 1rem;
+    margin-top: 1rem;
+    padding: 0 0.5rem;
+}
+
+/* === PRODUCT CARD === */
+.product-card {
+    background: white;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    transition: transform 0.2s ease;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+}
+
+.product-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
+}
+
+.product-image {
+    width: 100%;
+    height: 300px;
+    object-fit: cover;
+    border-radius: 12px 12px 0 0;
+}
+
+.product-image_admin {
+    width: 75px;
+    height: 75px;
+    object-fit: cover;
+    border-radius: 6px;
+}
+
+.card-body {
+    padding: 0.75rem;
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.card-title {
+    font-weight: 600;
+    font-size: 0.95rem;
+    margin: 0.3rem 0;
+    color: #1e293b;
+}
+
+.card-price {
+    color: #2196F3;
+    font-weight: 700;
+    font-size: 1rem;
+    margin: 0.3rem 0;
+}
+
+.product-actions {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+/* === PRODUCT DETAIL === */
+.product-detail-content {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+    margin-top: 1.5rem;
+    align-items: start;
+}
+
+.product-detail-content img {
+    width: 100%;
+    max-width: 360px;
+    height: 360px;
+    object-fit: cover;
+    border-radius: 12px;
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
+}
+
+.quantity-selector {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin: 1.25rem 0;
+}
+
+.product-actions-row {
+    display: flex;
+    gap: 1rem;
+    margin-top: 1.5rem;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+/* === LOGIN & REGISTER === */
+.login-container,
+.register-container {
+    max-width: 400px;
+    margin: 3rem auto;
+    padding: 2rem;
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+}
+
+.login-link,
+.register-link {
+    margin-top: 1.25rem;
+    font-size: 0.9rem;
+    text-align: center;
+}
+
+.login-link a,
+.register-link a {
+    color: #2196F3;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+/* === SEARCH BAR === */
+.search-container {
+    max-width: 500px;
+    margin: 0 auto 0.5rem;
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+.search-container label {
+    min-width: 70px;
+}

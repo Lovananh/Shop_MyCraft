@@ -1,145 +1,274 @@
+// src/pages/Checkout.js – ĐÃ SỬA HOÀN CHỈNH
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 import axios from 'axios';
-import './Checkout.css';
 
 function Checkout() {
     const [orderItems, setOrderItems] = useState([]);
+    const [userInfo, setUserInfo] = useState({ name: '', phone: '', address: '' });
+    const [editing, setEditing] = useState(false);
+    const [form, setForm] = useState({ name: '', phone: '', address: '' });
+    const [paymentMethod, setPaymentMethod] = useState('cod');
     const [error, setError] = useState(null);
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
     const location = useLocation();
     const user = JSON.parse(localStorage.getItem('user') || 'null');
+
     const selectedItems = location.state?.selectedItems || [];
 
     useEffect(() => {
-        if (!user || !user.userId) {
-            navigate('/login', { state: { message: 'Vui lòng đăng nhập để thanh toán' } });
+        if (!user?.userId) {
+            navigate('/login');
             return;
         }
 
-        let isMounted = true;
+        fetchUserInfo();
+        fetchMissingProductDetails();
+    }, [navigate, user?.userId, selectedItems]);
 
-        const fetchOrderItems = async () => {
-            if (selectedItems.length === 0) {
-                setError('Không có sản phẩm nào để thanh toán');
-                setLoading(false);
+    const fetchUserInfo = async () => {
+        try {
+            const res = await axios.get('http://localhost:5000/api/users/profile', {
+                headers: { 'user-id': user.userId },
+            });
+            setUserInfo(res.data);
+            setForm(res.data);
+        } catch (err) {
+            console.warn('Không lấy được thông tin người dùng');
+            setUserInfo({ name: 'Chưa có', phone: '', address: '' });
+            setForm({ name: '', phone: '', address: '' });
+        }
+    };
+
+    const fetchMissingProductDetails = async () => {
+        if (selectedItems.length === 0) {
+            setError('Không có sản phẩm');
+            return;
+        }
+
+        setLoading(true);
+        try {
+            const completedItems = await Promise.all(
+                selectedItems.map(async (item) => {
+                    if (item.price && item.name && item.imageUrl) {
+                        return item;
+                    }
+
+                    const res = await axios.get(`http://localhost:5000/api/products/${item.productId}`);
+                    const product = res.data;
+
+                    return {
+                        productId: product._id,
+                        name: product.name,
+                        price: product.price,
+                        imageUrl: product.imageUrl || '',
+                        quantity: item.quantity || 1
+                    };
+                })
+            );
+
+            setOrderItems(completedItems);
+        } catch (err) {
+            setError('Lỗi tải sản phẩm');
+            console.error(err);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const totalPrice = orderItems.reduce((sum, item) => sum + (item.price || 0) * (item.quantity || 0), 0);
+
+    const handlePlaceOrder = async () => {
+        if (!form.name || !form.phone || !form.address) {
+            alert('Vui lòng điền đầy đủ thông tin giao hàng');
+            return;
+        }
+
+        setLoading(true);
+        setError(null);
+
+        try {
+            // === COD: TẠO ĐƠN NGAY ===
+            if (paymentMethod === 'cod') {
+                const orderRes = await axios.post('http://localhost:5000/api/orders', {
+                    items: orderItems,
+                    name: form.name,
+                    phone: form.phone,
+                    address: form.address,
+                    paymentMethod: 'cod'
+                }, { headers: { 'user-id': user.userId } });
+
+                alert('Đặt hàng thành công!');
+                navigate('/orders');
                 return;
             }
 
-            setLoading(true);
-            try {
-                const response = await axios.post(
-                    'http://localhost:5000/api/cart/selected',
-                    { selectedItems },
-                    { headers: { 'user-id': user.userId } }
-                );
-                console.log('Order Items Response:', response.data);
-                if (isMounted) {
-                    setOrderItems(response.data.items || []);
-                    setError(null);
+            // === QR: CHỈ TẠO LINK THANH TOÁN, CHƯA TẠO ĐƠN ===
+            if (paymentMethod === 'qr') {
+                const tempOrderId = `TEMP_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
+
+                const qrRes = await axios.post('http://localhost:5000/api/payment/create-qr-temp', {
+                    tempOrderId,
+                    items: orderItems,
+                    name: form.name,
+                    phone: form.phone,
+                    address: form.address,
+                    total: totalPrice
+                }, { headers: { 'user-id': user.userId } });
+
+                if (qrRes.data.success) {
+                    // Lưu tạm vào localStorage để dùng sau khi thanh toán
+                    localStorage.setItem('pendingOrder', JSON.stringify({
+                        tempOrderId,
+                        items: orderItems,
+                        name: form.name,
+                        phone: form.phone,
+                        address: form.address,
+                        total: totalPrice
+                    }));
+                    window.location.href = qrRes.data.paymentUrl;
                 }
-            } catch (err) {
-                if (isMounted) {
-                    setError(err.response?.data?.message || 'Lỗi khi lấy thông tin thanh toán');
-                    console.error('Fetch order items error:', err.response?.data || err.message);
-                }
-            } finally {
-                if (isMounted) {
-                    setLoading(false);
-                }
+                return;
             }
-        };
 
-        fetchOrderItems();
-
-        return () => {
-            isMounted = false;
-        };
-    }, [navigate, user?.userId, selectedItems]);
-
-    const totalPrice = orderItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
-
-    const handlePlaceOrder = async () => {
-        if (orderItems.length === 0) {
-            setError('Không có sản phẩm nào để thanh toán');
-            return;
-        }
-
-        try {
-            await axios.post(
-                'http://localhost:5000/api/orders',
-                { items: orderItems },
-                { headers: { 'user-id': user.userId } }
-            );
-            // Xóa các sản phẩm đã thanh toán khỏi giỏ hàng
-            await axios.post(
-                'http://localhost:5000/api/cart/remove-selected',
-                { selectedItems },
-                { headers: { 'user-id': user.userId } }
-            );
-            alert('Đặt hàng thành công!');
-            navigate('/products');
         } catch (err) {
-            setError(err.response?.data?.message || 'Lỗi khi đặt hàng');
-            console.error('Place order error:', err.response?.data || err.message);
+            setError(err.response?.data?.message || 'Lỗi');
+            alert('Lỗi: ' + (err.response?.data?.message || 'Không thể xử lý'));
+        } finally {
+            setLoading(false);
         }
     };
 
     return (
-        <div className="checkout-container">
+        <div className="page-wrapper">
             <nav className="navbar">
-                <Link to="/products">Sản phẩm</Link>
-                <Link to="/cart">Giỏ hàng</Link>
-                <button onClick={() => {
-                    if (window.confirm('Bạn có chắc muốn đăng xuất?')) {
+                <div className="container">
+                    <Link to="/products">Sản phẩm</Link>
+                    <Link to="/cart">Giỏ hàng</Link>
+                    <Link to="/orders">Đơn hàng</Link>
+                    <button onClick={() => {
                         localStorage.removeItem('user');
                         navigate('/login');
-                    }
-                }}>Đăng xuất</button>
-            </nav>
-            <button onClick={() => navigate(-1)} className="back-button">Quay lại</button>
-            <h2>Thanh toán</h2>
-            {error && <p className="error">{error}</p>}
-            {loading && <p>Đang tải...</p>}
-            {!loading && orderItems.length === 0 ? (
-                <p>Không có sản phẩm nào để thanh toán</p>
-            ) : (
-                <div>
-                    <table className="checkout-table">
-                        <thead>
-                            <tr>
-                                <th>Hình ảnh</th>
-                                <th>Sản phẩm</th>
-                                <th>Số lượng</th>
-                                <th>Giá</th>
-                                <th>Tổng</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {orderItems.map((item) => (
-                                <tr key={item.productId}>
-                                    <td>
-                                        <img
-                                            src={item.imageUrl || 'https://place.dog/100/100'}
-                                            alt={item.name}
-                                            className="checkout-image"
-                                        />
-                                    </td>
-                                    <td>{item.name}</td>
-                                    <td>{item.quantity}</td>
-                                    <td>{item.price.toLocaleString()} VNĐ</td>
-                                    <td>{(item.price * item.quantity).toLocaleString()} VNĐ</td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                    <p>Tổng tiền: {totalPrice.toLocaleString()} VNĐ</p>
-                    <button onClick={handlePlaceOrder} className="place-order-button">
-                        Đặt hàng
-                    </button>
+                    }}>Đăng xuất</button>
                 </div>
-            )}
+            </nav>
+
+            <div className="page-content">
+                <div className="checkout-container">
+                    <h2>Xác nhận đơn hàng</h2>
+                    {error && <p className="error">{error}</p>}
+
+                    {/* === THÔNG TIN GIAO HÀNG === */}
+                    <div className="section">
+                        <h3>Thông tin giao hàng</h3>
+                        {editing ? (
+                            <div className="edit-form">
+                                <input placeholder="Họ tên" value={form.name} onChange={e => setForm(p => ({ ...p, name: e.target.value }))} />
+                                <input placeholder="SĐT" value={form.phone} onChange={e => setForm(p => ({ ...p, phone: e.target.value }))} />
+                                <textarea placeholder="Địa chỉ" value={form.address} onChange={e => setForm(p => ({ ...p, address: e.target.value }))} rows="3" />
+                                <div className="form-actions">
+                                    <button onClick={() => { setEditing(false); setForm(userInfo); }}>Hủy</button>
+                                    <button
+                                        onClick={async () => {
+                                            try {
+                                                await axios.put(
+                                                    'http://localhost:5000/api/users/profile',
+                                                    form,
+                                                    { headers: { 'user-id': user.userId } }
+                                                );
+                                                setUserInfo(form);
+                                                setEditing(false);
+                                            } catch (err) {
+                                                alert('Lỗi: ' + (err.response?.data?.message || 'Không thể lưu'));
+                                            }
+                                        }}
+                                        className="primary"
+                                    >
+                                        Lưu
+                                    </button>
+                                </div>
+                            </div>
+                        ) : (
+                            <div className="user-info">
+                                <p><strong>Họ tên:</strong> {userInfo.name || 'Chưa có'}</p>
+                                <p><strong>SĐT:</strong> {userInfo.phone || 'Chưa có'}</p>
+                                <p><strong>Địa chỉ:</strong> {userInfo.address || 'Chưa có'}</p>
+                                <button onClick={() => { setEditing(true); setForm(userInfo); }} className="edit-btn">Sửa</button>
+                            </div>
+                        )}
+                    </div>
+
+                    {/* === PHƯƠNG THỨC THANH TOÁN === */}
+                    <div className="section">
+                        <h3>Phương thức thanh toán</h3>
+                        <div className="payment-select-container">
+                            <select value={paymentMethod} onChange={(e) => setPaymentMethod(e.target.value)} className="payment-select">
+                                <option value="cod">Thanh toán khi nhận hàng (COD)</option>
+                                <option value="qr">Thanh toán bằng mã QR</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    {/* === SẢN PHẨM === */}
+                    <div className="section">
+                        <h3>Sản phẩm</h3>
+                        {loading ? (
+                            <p>Đang tải...</p>
+                        ) : (
+                            <table className="checkout-table">
+                                <thead>
+                                    <tr>
+                                        <th>Hình</th><th>Sản phẩm</th><th>SL</th><th>Giá</th><th>Tổng</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {orderItems.map(item => (
+                                        <tr key={item.productId}>
+                                            <td>
+                                                <img
+                                                    src={item.imageUrl || 'https://place.dog/100/100'}
+                                                    alt={item.name}
+                                                    className="checkout-image"
+                                                />
+                                            </td>
+                                            <td>{item.name || 'Không rõ'}</td>
+                                            <td>{item.quantity || 1}</td>
+                                            <td>{(item.price || 0).toLocaleString()} VNĐ</td>
+                                            <td>{((item.price || 0) * (item.quantity || 1)).toLocaleString()} VNĐ</td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        )}
+                    </div>
+
+                    {/* === TỔNG TIỀN === */}
+                    <div className="section total-section">
+                        <p className="total">
+                            Tổng tiền: <strong>{totalPrice.toLocaleString()} VNĐ</strong>
+                        </p>
+                    </div>
+
+                    {/* === NÚT HÀNH ĐỘNG (CHỈ 1 LẦN) === */}
+                    <div className="checkout-actions">
+                        <button
+                            onClick={handlePlaceOrder}
+                            disabled={loading}
+                            className="place-order-btn"
+                            style={{ opacity: loading ? 0.7 : 1 }}
+                        >
+                            {loading
+                                ? 'Đang xử lý...'
+                                : paymentMethod === 'qr'
+                                    ? 'Thanh toán bằng QR'
+                                    : 'Đặt hàng (COD)'
+                            }
+                        </button>
+                        <button onClick={() => navigate(-1)} className="back-button">Quay lại</button>
+                    </div>
+                </div>
+            </div>
         </div>
     );
 }

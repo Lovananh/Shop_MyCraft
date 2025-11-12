@@ -1,7 +1,7 @@
+// src/pages/Login.js
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import './Login.css';
 
 function Login() {
     const [username, setUsername] = useState('');
@@ -12,13 +12,9 @@ function Login() {
     const user = JSON.parse(localStorage.getItem('user') || 'null');
 
     useEffect(() => {
-        if (user && user.userId) {
-            console.log('User already logged in:', user);
-            if (user.role === 'admin') {
-                navigate('/admin');
-            } else {
-                navigate('/products');
-            }
+        if (user?.userId) {
+            console.log('Đã đăng nhập:', user);
+            navigate(user.role === 'admin' ? '/admin' : '/');
         }
     }, [navigate, user]);
 
@@ -33,21 +29,21 @@ function Login() {
                 username,
                 password,
             });
+
+            // DỮ LIỆU PHẢI CÓ: _id, username, role
             const userData = {
-                userId: response.data.userId,
+                userId: response.data._id,        // ← DÙNG _id
                 username: response.data.username,
                 role: response.data.role || 'user',
             };
-            console.log('Saving user to localStorage:', userData);
+
+            console.log('Lưu user vào localStorage:', userData);
             localStorage.setItem('user', JSON.stringify(userData));
-            if (response.data.role === 'admin') {
-                navigate('/admin');
-            } else {
-                navigate('/products');
-            }
+
+            navigate(userData.role === 'admin' ? '/admin' : '/');
         } catch (err) {
-            setError(err.response?.data?.message || 'Lỗi khi đăng nhập');
-            console.error('Login error:', err.response?.data || err.message);
+            setError(err.response?.data?.message || 'Sai tên đăng nhập hoặc mật khẩu');
+            console.error('Lỗi đăng nhập:', err.response?.data);
         } finally {
             setLoading(false);
         }
@@ -64,8 +60,9 @@ function Login() {
                     <input
                         type="text"
                         value={username}
-                        onChange={(e) => setUsername(e.target.value)}
+                        onChange={(e) => setUsername(e.target.value.trim())}
                         required
+                        autoComplete="username"
                     />
                 </div>
                 <div className="form-group">
@@ -75,6 +72,7 @@ function Login() {
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
                         required
+                        autoComplete="current-password"
                     />
                 </div>
                 <button type="submit" disabled={loading} className="submit-button">
@@ -82,7 +80,7 @@ function Login() {
                 </button>
             </form>
             <p className="register-link">
-                Chưa có tài khoản? <a href="/register">Đăng ký</a>
+                Chưa có tài khoản? <a href="/register">Đăng ký ngay</a>
             </p>
         </div>
     );
