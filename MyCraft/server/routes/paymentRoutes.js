@@ -1,17 +1,18 @@
 // server/routes/paymentRoutes.js
+
 const express = require('express');
 const router = express.Router();
-
-// ĐÚNG: Import class PayOS
 const PayOS = require('@payos/node');
 const Order = require('../models/Order');
+require('dotenv').config();
+
 
 // Tạo instance PayOS (dùng new)
-const payOS = new PayOS(
-    process.env.PAYOS_CLIENT_ID,
-    process.env.PAYOS_API_KEY,
-    process.env.PAYOS_CHECKSUM_KEY
-);
+// const payOS = new PayOS(
+//     process.env.PAYOS_CLIENT_ID,
+//     process.env.PAYOS_API_KEY,
+//     process.env.PAYOS_CHECKSUM_KEY
+// );
 
 // === TẠO LINK THANH TOÁN QR ===
 router.post('/create-qr', async (req, res) => {
@@ -22,15 +23,22 @@ router.post('/create-qr', async (req, res) => {
     if (!orderId) return res.status(400).json({ message: 'Thiếu orderId' });
 
     try {
+
         const order = await Order.findOne({ orderId });
         if (!order) return res.status(404).json({ message: 'Không tìm thấy đơn hàng' });
         if (order.userId !== userId) return res.status(403).json({ message: 'Không có quyền' });
         if (order.paymentMethod !== 'qr') return res.status(400).json({ message: 'Không phải thanh toán QR' });
 
+        const payOS = new PayOS(
+            process.env.PAYOS_CLIENT_ID,
+            process.env.PAYOS_API_KEY,
+            process.env.PAYOS_CHECKSUM_KEY
+        );
+
         const checkoutData = {
             orderCode: Date.now(),
             amount: order.total,
-            description: `ĐH ${orderId}`.substring(0, 25), // ≤ 25 ký tự
+            description: `ĐH ${orderId}`.substring(0, 25),
             items: order.items.map(i => ({
                 name: i.name,
                 quantity: i.quantity,
@@ -67,6 +75,12 @@ router.post('/create-qr-temp', async (req, res) => {
     if (!userId || !tempOrderId) return res.status(400).json({ message: 'Thiếu thông tin' });
 
     try {
+
+        const payOS = new PayOS(
+            process.env.PAYOS_CLIENT_ID,
+            process.env.PAYOS_API_KEY,
+            process.env.PAYOS_CHECKSUM_KEY
+        );
         const checkoutData = {
             orderCode: Date.now(),
             amount: total,
@@ -94,6 +108,11 @@ router.post('/create-qr-temp', async (req, res) => {
 // === WEBHOOK ===
 router.post('/webhook', async (req, res) => {
     try {
+        const payOS = new PayOS(
+            process.env.PAYOS_CLIENT_ID,
+            process.env.PAYOS_API_KEY,
+            process.env.PAYOS_CHECKSUM_KEY
+        );
         const webhookData = payOS.verifyPaymentWebhookData(req.body);
         if (!webhookData.success) {
             return res.status(400).json({ message: 'Webhook không hợp lệ' });
