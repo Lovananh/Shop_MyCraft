@@ -31,8 +31,8 @@ console.log('KẾT NỐI ĐẾN:', MONGO_URI);
         await Promise.all([
             User.deleteMany({}),
             Product.deleteMany({}),
-            Cart.deleteMany({}),
-            Order.deleteMany({}),
+            // Cart.deleteMany({}),
+            // Order.deleteMany({}),
         ]);
         console.log('ĐÃ XÓA TOÀN BỘ DỮ LIỆU CŨ');
 
@@ -103,104 +103,104 @@ console.log('KẾT NỐI ĐẾN:', MONGO_URI);
         const demoUserId = demoUser._id.toString();
         console.log(`Demo userId: ${demoUserId}`);
 
-        // --- GIỎ HÀNG MẪU ---
-        const product2 = savedProducts[1]; // Móc khóa
-        const product4 = savedProducts[3]; // Thiệp
+        // // --- GIỎ HÀNG MẪU ---
+        // const product2 = savedProducts[1]; // Móc khóa
+        // const product4 = savedProducts[3]; // Thiệp
 
-        await Cart.create({
-            userId: demoUserId,
-            items: [
-                {
-                    productId: product2._id.toString(),
-                    name: product2.name,
-                    price: product2.price,
-                    imageUrl: product2.imageUrl,
-                    quantity: 2
-                },
-                {
-                    productId: product4._id.toString(),
-                    name: product4.name,
-                    price: product4.price,
-                    imageUrl: product4.imageUrl,
-                    quantity: 1
-                },
-            ],
-        });
-        console.log('ĐÃ THÊM GIỎ HÀNG MẪU');
+        // await Cart.create({
+        //     userId: demoUserId,
+        //     items: [
+        //         {
+        //             productId: product2._id.toString(),
+        //             name: product2.name,
+        //             price: product2.price,
+        //             imageUrl: product2.imageUrl,
+        //             quantity: 2
+        //         },
+        //         {
+        //             productId: product4._id.toString(),
+        //             name: product4.name,
+        //             price: product4.price,
+        //             imageUrl: product4.imageUrl,
+        //             quantity: 1
+        //         },
+        //     ],
+        // });
+        // console.log('ĐÃ THÊM GIỎ HÀNG MẪU');
 
-        // === ĐƠN HÀNG MẪU ===
-        const product1 = savedProducts[0]; // Vòng tay
-        const product3 = savedProducts[2]; // Giỏ hoa
+        // // === ĐƠN HÀNG MẪU ===
+        // const product1 = savedProducts[0]; // Vòng tay
+        // const product3 = savedProducts[2]; // Giỏ hoa
 
-        const calcTotal = (items) => items.reduce((sum, item) => sum + item.price * item.quantity, 0);
+        // const calcTotal = (items) => items.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
-        // Đơn 1: Chờ xử lý (COD)
-        await Order.create({
-            userId: demoUserId,
-            orderId: `ORDER_${Date.now()}_001`,
-            items: [
-                {
-                    productId: product1._id.toString(),
-                    name: product1.name,
-                    price: product1.price,
-                    imageUrl: product1.imageUrl,
-                    quantity: 1
-                },
-            ],
-            name: 'Nguyễn Văn A',
-            phone: '0901234567',
-            address: '123 Đường Láng, Hà Nội',
-            total: calcTotal([{ price: product1.price, quantity: 1 }]),
-            paymentMethod: 'cod',
-            paymentStatus: 'unpaid',
-            status: 'pending',
-        });
+        // // Đơn 1: Chờ xử lý (COD)
+        // await Order.create({
+        //     userId: demoUserId,
+        //     orderId: `ORDER_${Date.now()}_001`,
+        //     items: [
+        //         {
+        //             productId: product1._id.toString(),
+        //             name: product1.name,
+        //             price: product1.price,
+        //             imageUrl: product1.imageUrl,
+        //             quantity: 1
+        //         },
+        //     ],
+        //     name: 'Nguyễn Văn A',
+        //     phone: '0901234567',
+        //     address: '123 Đường Láng, Hà Nội',
+        //     total: calcTotal([{ price: product1.price, quantity: 1 }]),
+        //     paymentMethod: 'cod',
+        //     paymentStatus: 'unpaid',
+        //     status: 'pending',
+        // });
 
-        // Đơn 2: Đã thanh toán QR + Hoàn thành
-        await Order.create({
-            userId: demoUserId,
-            orderId: `ORDER_${Date.now()}_002`,
-            items: [
-                {
-                    productId: product3._id.toString(),
-                    name: product3.name,
-                    price: product3.price,
-                    imageUrl: product3.imageUrl,
-                    quantity: 1
-                },
-            ],
-            name: 'Trần Thị B',
-            phone: '0912345678',
-            address: '456 Lê Lợi, TP.HCM',
-            total: calcTotal([{ price: product3.price, quantity: 1 }]),
-            paymentMethod: 'qr',
-            paymentStatus: 'paid',
-            status: 'completed',
-        });
+        // // Đơn 2: Đã thanh toán QR + Hoàn thành
+        // await Order.create({
+        //     userId: demoUserId,
+        //     orderId: `ORDER_${Date.now()}_002`,
+        //     items: [
+        //         {
+        //             productId: product3._id.toString(),
+        //             name: product3.name,
+        //             price: product3.price,
+        //             imageUrl: product3.imageUrl,
+        //             quantity: 1
+        //         },
+        //     ],
+        //     name: 'Trần Thị B',
+        //     phone: '0912345678',
+        //     address: '456 Lê Lợi, TP.HCM',
+        //     total: calcTotal([{ price: product3.price, quantity: 1 }]),
+        //     paymentMethod: 'qr',
+        //     paymentStatus: 'paid',
+        //     status: 'completed',
+        // });
 
-        // Đơn 3: Đã hủy
-        await Order.create({
-            userId: demoUserId,
-            orderId: `ORDER_${Date.now()}_003`,
-            items: [
-                {
-                    productId: product2._id.toString(),
-                    name: product2.name,
-                    price: product2.price,
-                    imageUrl: product2.imageUrl,
-                    quantity: 1
-                },
-            ],
-            name: 'Lê Văn C',
-            phone: '0923456789',
-            address: '789 Nguyễn Huệ, Đà Nẵng',
-            total: calcTotal([{ price: product2.price, quantity: 1 }]),
-            paymentMethod: 'cod',
-            paymentStatus: 'unpaid',
-            status: 'cancelled',
-        });
+        // // Đơn 3: Đã hủy
+        // await Order.create({
+        //     userId: demoUserId,
+        //     orderId: `ORDER_${Date.now()}_003`,
+        //     items: [
+        //         {
+        //             productId: product2._id.toString(),
+        //             name: product2.name,
+        //             price: product2.price,
+        //             imageUrl: product2.imageUrl,
+        //             quantity: 1
+        //         },
+        //     ],
+        //     name: 'Lê Văn C',
+        //     phone: '0923456789',
+        //     address: '789 Nguyễn Huệ, Đà Nẵng',
+        //     total: calcTotal([{ price: product2.price, quantity: 1 }]),
+        //     paymentMethod: 'cod',
+        //     paymentStatus: 'unpaid',
+        //     status: 'cancelled',
+        // });
 
-        console.log('ĐÃ THÊM 3 ĐƠN HÀNG MẪU (pending, completed, cancelled)');
+        // console.log('ĐÃ THÊM 3 ĐƠN HÀNG MẪU (pending, completed, cancelled)');
 
         // === KẾT THÚC ===
         console.log('MIGRATION HOÀN TẤT!');

@@ -1,11 +1,9 @@
-// server/routes/adminUserRoutes.js – ĐÃ SỬA HOÀN CHỈNH
 const express = require('express');
 const router = express.Router();
 const User = require('../models/User');
-const bcrypt = require('bcrypt'); // ← THÊM
+const bcrypt = require('bcrypt');
 const checkAdmin = require('../middleware/checkAdmin');
 
-// === LẤY TẤT CẢ NGƯỜI DÙNG (ADMIN) ===
 router.get('/all', checkAdmin, async (req, res) => {
     try {
         const users = await User.find().select('-password');
@@ -15,14 +13,13 @@ router.get('/all', checkAdmin, async (req, res) => {
     }
 });
 
-// === TẠO NGƯỜI DÙNG MỚI (ADMIN) ===
 router.post('/', checkAdmin, async (req, res) => {
     try {
         const { username, name, phone, address, role, password } = req.body;
         if (!username || !name || !password)
             return res.status(400).json({ message: 'Thiếu thông tin bắt buộc' });
-        if (password.length < 6)
-            return res.status(400).json({ message: 'Mật khẩu phải ≥ 6 ký tự' });
+        if (password.length < 8)
+            return res.status(400).json({ message: 'Mật khẩu phải ≥ 8 ký tự' });
         if (await User.findOne({ username }))
             return res.status(400).json({ message: 'Tên đăng nhập đã tồn tại' });
 
@@ -37,7 +34,7 @@ router.post('/', checkAdmin, async (req, res) => {
     }
 });
 
-// === CẬP NHẬT NGƯỜI DÙNG (ADMIN) ===
+
 router.put('/:id', checkAdmin, async (req, res) => {
     try {
         const user = await User.findById(req.params.id);

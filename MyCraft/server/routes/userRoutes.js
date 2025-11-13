@@ -2,11 +2,14 @@ const express = require('express');
 const router = express.Router();
 const User = require('../models/User');
 const bcrypt = require('bcrypt');
+const verifyToken = require('../middleware/verifyToken');
 
 // GET /api/users/profile
-router.get('/profile', async (req, res) => {
+router.get('/profile', verifyToken, async (req, res) => {
     try {
-        const userId = req.headers['user-id']; // Đây là _id từ localStorage
+        // const userId = req.headers['user-id']; // Đây là _id từ localStorage
+        const userId = req.user.userId;
+
         if (!userId) {
             return res.status(401).json({ message: 'Thiếu user-id trong header' });
         }
@@ -28,8 +31,10 @@ router.get('/profile', async (req, res) => {
 });
 
 // === CẬP NHẬT THÔNG TIN CÁ NHÂN ===
-router.put('/profile', async (req, res) => {
-    const userId = req.headers['user-id'];
+router.put('/profile', verifyToken, async (req, res) => {
+    // const userId = req.headers['user-id'];
+    const userId = req.user.userId;
+
     const { name, phone, address } = req.body;
 
     if (!userId) return res.status(401).json({ message: 'Chưa đăng nhập' });

@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 import axios from 'axios';
+import { useAuth } from '../hooks/useAuth';
 
 function Checkout() {
     const [orderItems, setOrderItems] = useState([]);
@@ -13,24 +14,27 @@ function Checkout() {
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
     const location = useLocation();
-    const user = JSON.parse(localStorage.getItem('user') || 'null');
+    // const user = JSON.parse(localStorage.getItem('user') || 'null');
+    const { token, role, logout } = useAuth();
 
     const selectedItems = location.state?.selectedItems || [];
 
     useEffect(() => {
-        if (!user?.userId) {
+        // if (!user?.userId) {
+        if (!token) {
             navigate('/login');
             return;
         }
 
         fetchUserInfo();
         fetchMissingProductDetails();
-    }, [navigate, user?.userId, selectedItems]);
+    }, [navigate, token, selectedItems]);
 
     const fetchUserInfo = async () => {
         try {
             const res = await axios.get('http://localhost:5000/api/users/profile', {
-                headers: { 'user-id': user.userId },
+                // headers: { 'user-id': user.userId },
+                headers: { Authorization: `Bearer ${token}` }
             });
             setUserInfo(res.data);
             setForm(res.data);
@@ -97,7 +101,10 @@ function Checkout() {
                     phone: form.phone,
                     address: form.address,
                     paymentMethod: 'cod'
-                }, { headers: { 'user-id': user.userId } });
+                },
+                    // { headers: { 'user-id': user.userId } }
+                    { headers: { Authorization: `Bearer ${token}` } }
+                );
 
                 alert('Đặt hàng thành công!');
                 navigate('/orders');
@@ -115,7 +122,11 @@ function Checkout() {
                     phone: form.phone,
                     address: form.address,
                     total: totalPrice
-                }, { headers: { 'user-id': user.userId } });
+                }, {
+                    // headers: { 'user-id': user.userId }
+                    headers: { Authorization: `Bearer ${token}` }
+                }
+                );
 
                 if (qrRes.data.success) {
                     // Lưu tạm vào localStorage để dùng sau khi thanh toán
@@ -147,6 +158,7 @@ function Checkout() {
                     <Link to="/products">Sản phẩm</Link>
                     <Link to="/cart">Giỏ hàng</Link>
                     <Link to="/orders">Đơn hàng</Link>
+                    <Link to="/profile">Cá nhân</Link>
                     <button onClick={() => {
                         localStorage.removeItem('user');
                         navigate('/login');
@@ -175,7 +187,8 @@ function Checkout() {
                                                 await axios.put(
                                                     'http://localhost:5000/api/users/profile',
                                                     form,
-                                                    { headers: { 'user-id': user.userId } }
+                                                    // { headers: { 'user-id': user.userId } }
+                                                    { headers: { Authorization: `Bearer ${token}` } }
                                                 );
                                                 setUserInfo(form);
                                                 setEditing(false);

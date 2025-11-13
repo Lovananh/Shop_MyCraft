@@ -1,7 +1,8 @@
 // src/pages/admin/AdminOrders.js
 import React, { useState, useEffect, useCallback } from 'react';
+import api from '../../utils/api';
+import { useAuth } from '../../hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
 
 function AdminOrders() {
     const [orders, setOrders] = useState([]);
@@ -12,22 +13,17 @@ function AdminOrders() {
     const [error, setError] = useState(null);
     const navigate = useNavigate();
 
-    // Lấy thông tin user từ localStorage
-    const user = JSON.parse(localStorage.getItem('user') || 'null');
-    const userId = user?.userId;
-    const role = user?.role;
+    const { token, role } = useAuth();
 
     /* ==================================================================
        [ADMIN] LẤY TẤT CẢ ĐƠN HÀNG
        ================================================================== */
     const fetchOrders = useCallback(async () => {
-        if (!userId || role !== 'admin') return;
+        if (!token || role !== 'admin') return;
         setLoading(true);
         setError(null);
         try {
-            const res = await axios.get('http://localhost:5000/api/orders/all', {
-                headers: { 'user-id': userId },
-            });
+            const res = await api.get('http://localhost:5000/api/orders/all');
             const sortedOrders = (res.data || []).sort(
                 (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
             );
@@ -39,31 +35,27 @@ function AdminOrders() {
         } finally {
             setLoading(false);
         }
-    }, [userId]);
+    }, [token]);
 
-    /* ==================================================================
-       [ADMIN] KIỂM TRA QUYỀN + GỌI API
-       ================================================================== */
+
     useEffect(() => {
-        if (!userId || role !== 'admin') {
+        if (!token || role !== 'admin') {
             navigate('/login', { replace: true });
             return;
         }
         fetchOrders();
     }, [fetchOrders, navigate]);
 
-    /* ==================================================================
-       [ADMIN] CẬP NHẬT TRẠNG THÁI ĐƠN HÀNG
-       ================================================================== */
+    //    admin  CẬP NHẬT TRẠNG THÁI ĐƠN HÀNG
+
     const handleUpdateStatus = async (orderId, newStatus) => {
         const statusText = newStatus === 'completed' ? 'Hoàn thành' : 'Đã hủy';
         if (!window.confirm(`Cập nhật trạng thái thành "${statusText}"?`)) return;
 
         try {
-            const res = await axios.put(
+            const res = await api.put(
                 `http://localhost:5000/api/orders/${orderId}/status`,
-                { status: newStatus },
-                { headers: { 'user-id': userId } }
+                { status: newStatus }
             );
             setOrders(prev => prev.map(o => o.orderId === orderId ? res.data : o));
             alert('Cập nhật thành công!');
@@ -94,7 +86,7 @@ function AdminOrders() {
     const formatDate = (date) => new Date(date).toLocaleString('vi-VN');
 
     // Bảo vệ quyền truy cập
-    if (!userId || role !== 'admin') return null;
+    if (!token || role !== 'admin') return null;
 
     /* ==================================================================
        [ADMIN] GIAO DIỆN HIỂN THỊ

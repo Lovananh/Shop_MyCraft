@@ -2,11 +2,17 @@
 import React from 'react';
 import { Link, Outlet, useNavigate, useLocation } from 'react-router-dom';
 import '../../assets/styles/pages.css';
+import { useAuth } from '../../hooks/useAuth';
 
 function AdminLayout() {
     const location = useLocation();
     const navigate = useNavigate();
-    const user = JSON.parse(localStorage.getItem('user') || 'null');
+    const { token, role, logout } = useAuth();
+
+    if (!token || role !== 'admin') {
+        navigate('/login');
+        return null;
+    }
 
     return (
         <div className="page-wrapper page-wrapper-admin">
@@ -34,10 +40,7 @@ function AdminLayout() {
                                 Quản lý người dùng
                             </button>
                         </Link>
-                        <button onClick={() => {
-                            localStorage.removeItem('user');
-                            navigate('/login');
-                        }}>Đăng xuất</button>
+                        <button onClick={logout}>Đăng xuất</button>
                     </div>
                 </div>
 

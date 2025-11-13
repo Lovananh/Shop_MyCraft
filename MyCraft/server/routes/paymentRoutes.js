@@ -5,7 +5,8 @@ const router = express.Router();
 const PayOS = require('@payos/node');
 const Order = require('../models/Order');
 require('dotenv').config();
-
+console.log('client', process.env.PAYOS_CLIENT_ID);
+const verifyToken = require('../middleware/verifyToken');
 
 // Tạo instance PayOS (dùng new)
 // const payOS = new PayOS(
@@ -15,9 +16,10 @@ require('dotenv').config();
 // );
 
 // === TẠO LINK THANH TOÁN QR ===
-router.post('/create-qr', async (req, res) => {
+router.post('/create-qr', verifyToken, async (req, res) => {
     const { orderId } = req.body;
-    const userId = req.headers['user-id'];
+    // const userId = req.headers['user-id'];
+    const userId = req.user.userId
 
     if (!userId) return res.status(401).json({ message: 'Chưa đăng nhập' });
     if (!orderId) return res.status(400).json({ message: 'Thiếu orderId' });
@@ -68,9 +70,10 @@ router.post('/create-qr', async (req, res) => {
 });
 
 // === TẠO LINK QR TẠM (CHƯA TẠO ĐƠN) ===
-router.post('/create-qr-temp', async (req, res) => {
+router.post('/create-qr-temp', verifyToken, async (req, res) => {
     const { tempOrderId, items, name, phone, address, total } = req.body;
-    const userId = req.headers['user-id'];
+    // const userId = req.headers['user-id'];
+    const userId = req.user.userId
 
     if (!userId || !tempOrderId) return res.status(400).json({ message: 'Thiếu thông tin' });
 
