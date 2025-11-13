@@ -18,6 +18,9 @@ import PaymentSuccess from './pages/PaymentSuccess';
 import PaymentCancel from './pages/PaymentCancel';
 import Profile from './pages/Profile';
 
+// demo web an toan
+import UploadDemo from './pages/UploadDemo';
+
 function App() {
     return (
         <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
@@ -28,13 +31,15 @@ function App() {
                 <Route path="/product/:id" element={<ProductDetail />} />
                 <Route path="/profile" element={<Profile />} />
 
-                {/* USER ROUTES */}
+
                 <Route path="/products" element={<ProtectedRoute role="user"><ProductList /></ProtectedRoute>} />
                 <Route path="/cart" element={<ProtectedRoute role="user"><Cart /></ProtectedRoute>} />
                 <Route path="/checkout" element={<ProtectedRoute role="user"><Checkout /></ProtectedRoute>} />
                 <Route path="/orders" element={<ProtectedRoute role="user"><Order /></ProtectedRoute>} />
 
-                {/* ADMIN ROUTES */}
+                {/* demo web an toan */}
+                <Route path="/upload-demo" element={<UploadDemo />} />
+
                 <Route path="/admin" element={<ProtectedRoute role="admin"><AdminLayout /></ProtectedRoute>}>
                     <Route index element={<AdminOverview />} />
                     <Route path="products" element={<AdminProducts />} />
