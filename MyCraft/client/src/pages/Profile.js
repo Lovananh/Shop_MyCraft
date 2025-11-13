@@ -58,11 +58,11 @@ function Profile() {
 
     const handleSave = async () => {
         if (!/^[a-zA-ZÀ-ỹ\s]{2,100}$/.test(userInfo.name)) {
-            setError('Tên phải từ 2-100 ký tự, chỉ chữ và khoảng trắng'); 
+            setError('Tên phải từ 2-100 ký tự, chỉ chữ và khoảng trắng');
             return;
         }
         if (userInfo.phone && !/^(?:\+84|0)(?:3[2-9]|5[689]|7[06-9]|8[1-9]|9[0-9])[0-9]{7}$/.test(userInfo.phone)) {
-            setError('Số điện thoại không hợp lệ'); 
+            setError('Số điện thoại không hợp lệ');
             return;
         }
 
@@ -96,9 +96,9 @@ function Profile() {
             const res = await api.post('/profile/avatar', formData, {
                 headers: { 'Content-Type': 'multipart/form-data' }
             });
-            setUserInfo(prev => ({ 
-                ...prev, 
-                avatar: res.data.avatar + '?t=' + Date.now() 
+            setUserInfo(prev => ({
+                ...prev,
+                avatar: res.data.avatar + '?t=' + Date.now()
             }));
             setSuccess('Cập nhật ảnh đại diện thành công!');
             setError(null);
@@ -117,7 +117,12 @@ function Profile() {
                     <Link to="/cart">Giỏ hàng</Link>
                     <Link to="/orders">Đơn hàng</Link>
                     <Link to="/profile">Cá nhân</Link>
-                    <button onClick={logout}>Đăng xuất</button>
+                    <button onClick={() => {
+                        logout();
+                        navigate('/login', { replace: true });
+                    }}>
+                        Đăng xuất
+                    </button>
                 </div>
             </nav>
 

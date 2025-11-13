@@ -89,7 +89,12 @@ function Order() {
                     <Link to="/cart">Giỏ hàng</Link>
                     <Link to="/orders">Đơn hàng</Link>
                     <Link to="/profile">Cá nhân</Link>
-                    <button onClick={logout}>Đăng xuất</button>
+                    <button onClick={() => {
+                        logout();
+                        navigate('/login', { replace: true });
+                    }}>
+                        Đăng xuất
+                    </button>
                 </div>
             </nav>
 

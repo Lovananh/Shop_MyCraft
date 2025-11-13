@@ -1,60 +1,35 @@
-// src/hooks/useAuth.js
+// useAuth.js
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 
 export function useAuth() {
-    const [token, setToken] = useState(null);
-    const [userId, setUserId] = useState(null);
-    const [role, setRole] = useState(null);
-    const navigate = useNavigate();
+    // ĐỌC NGAY LẬP TỨC → KHÔNG DÙNG useEffect
+    const stored = localStorage.getItem('user');
+    const userData = stored ? JSON.parse(stored) : null;
 
+    const [token, setToken] = useState(userData?.token || null);
+    const [role, setRole] = useState(userData?.role || null);
+    const [userId, setUserId] = useState(userData?.userId || null);
+
+    // Chỉ lắng nghe thay đổi localStorage (nếu cần)
     useEffect(() => {
-        const loadUser = () => {
-            const userData = localStorage.getItem('user');
-            console.log('useAuth - Đang đọc localStorage.user:', userData); // DEBUG
-
-            if (userData) {
-                try {
-                    const parsed = JSON.parse(userData);
-                    setToken(parsed.token);
-                    setUserId(parsed.userId);
-                    setRole(parsed.role);
-                    console.log('useAuth - Đã load token:', parsed.token);
-                } catch (err) {
-                    console.error('Lỗi parse user:', err);
-                    localStorage.removeItem('user');
-                }
-            } else {
-                setToken(null);
-                setUserId(null);
-                setRole(null);
-            }
-        };
-
-        loadUser();
-
-        // LẮNG NGHE SỰ KIỆN localStorage THAY ĐỔI
-        const handleStorageChange = (e) => {
-            if (e.key === 'user') {
-                console.log('useAuth - localStorage.user thay đổi:', e.newValue);
-                loadUser();
-            }
+        const handleStorageChange = () => {
+            const newData = localStorage.getItem('user');
+            const parsed = newData ? JSON.parse(newData) : null;
+            setToken(parsed?.token || null);
+            setRole(parsed?.role || null);
+            setUserId(parsed?.userId || null);
         };
 
         window.addEventListener('storage', handleStorageChange);
-
-        return () => {
-            window.removeEventListener('storage', handleStorageChange);
-        };
+        return () => window.removeEventListener('storage', handleStorageChange);
     }, []);
 
     const logout = () => {
         localStorage.removeItem('user');
         setToken(null);
-        setUserId(null);
         setRole(null);
-        navigate('/login');
+        setUserId(null);
     };
 
-    return { token, userId, role, logout };
+    return { token, role, userId, logout };
 }

@@ -17,7 +17,7 @@ function Home() {
         const fetchProducts = async () => {
             setLoading(true);
             try {
-                const response = await api.get('/products'); // ← DÙNG api
+                const response = await api.get('/products');
                 if (isMounted) {
                     setProducts(response.data || []);
                     setError(null);

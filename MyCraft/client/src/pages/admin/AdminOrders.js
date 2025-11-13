@@ -13,7 +13,7 @@ function AdminOrders() {
     const [error, setError] = useState(null);
     const navigate = useNavigate();
 
-    const { token, role } = useAuth();
+    const { token, role, logout } = useAuth();
 
     /* ==================================================================
        [ADMIN] LẤY TẤT CẢ ĐƠN HÀNG

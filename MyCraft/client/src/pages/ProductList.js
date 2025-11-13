@@ -91,9 +91,11 @@ function ProductList() {
                     <Link to="/orders">Đơn hàng</Link>
                     <Link to="/profile">Cá nhân</Link>
                     <button onClick={() => {
-                        localStorage.removeItem('user');
-                        navigate('/login');
-                    }}>Đăng xuất</button>
+                        logout();
+                        navigate('/login', { replace: true });
+                    }}>
+                        Đăng xuất
+                    </button>
                 </div>
             </nav>
 

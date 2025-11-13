@@ -109,12 +109,12 @@ function Checkout() {
                 const tempOrderId = `TEMP_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
 
                 const qrRes = await api.post('/payment/create-qr-temp', {
-                tempOrderId,
-                items: orderItems,
-                name: form.name,
-                phone: form.phone,
-                address: form.address,
-                total: totalPrice
+                    tempOrderId,
+                    items: orderItems,
+                    name: form.name,
+                    phone: form.phone,
+                    address: form.address,
+                    total: totalPrice
                 });
 
                 if (qrRes.data.success) {
@@ -147,7 +147,12 @@ function Checkout() {
                     <Link to="/cart">Giỏ hàng</Link>
                     <Link to="/orders">Đơn hàng</Link>
                     <Link to="/profile">Cá nhân</Link>
-                    <button onClick={logout}>Đăng xuất</button> {/* DÙNG logout() */}
+                    <button onClick={() => {
+                        logout();
+                        navigate('/login', { replace: true });
+                    }}>
+                        Đăng xuất
+                    </button>
                 </div>
             </nav>
 
