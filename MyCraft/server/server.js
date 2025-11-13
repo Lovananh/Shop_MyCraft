@@ -7,7 +7,7 @@ const orderRoutes = require('./routes/orderRoutes');
 const userRoutes = require('./routes/userRoutes');
 const cartRoutes = require('./routes/cartRoutes');
 const authRoutes = require('./routes/authRoutes');
-// const uploadRoutes = require('./routes/uploadRoutes');
+const uploadRoutes = require('./routes/uploadRoutes');
 const adminUserRoutes = require('./routes/adminUserRoutes');
 const path = require('path');
 const paymentRoutes = require('./routes/paymentRoutes');
@@ -36,7 +36,7 @@ app.use('/api/orders', orderRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/cart', cartRoutes);
 app.use('/api/auth', authRoutes);
-// app.use('/api/upload', uploadRoutes);
+app.use('/api/upload', uploadRoutes);
 app.use('/api/users', adminUserRoutes);
 app.use('/api/payment', paymentRoutes);
 app.use('/api/profile', profileRouter);
@@ -44,8 +44,8 @@ app.use('/api/profile', profileRouter);
 app.use('/api/admin/users', adminUserRoutes);
 
 //demo web an toan
-const uploadRouter = require('./routes/upload');
-app.use('/api/upload', uploadRouter);
+// const uploadRouter = require('./routes/upload');
+// app.use('/api/upload', uploadRouter);
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
