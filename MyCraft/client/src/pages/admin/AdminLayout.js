@@ -25,7 +25,6 @@ function AdminLayout() {
                         <Link to="/admin/products"><button className={location.pathname.includes('/admin/products') ? 'active' : ''}>Quản lý sản phẩm</button></Link>
                         <Link to="/admin/orders"><button className={location.pathname.includes('/admin/orders') ? 'active' : ''}>Quản lý Đơn Hàng</button></Link>
                         <Link to="/admin/users"><button className={location.pathname.includes('/admin/users') ? 'active' : ''}>Quản lý người dùng</button></Link>
-                        <button onClick={logout}>Đăng xuất</button>
                         <button onClick={() => {
                             logout();
                             navigate('/login', { replace: true });
