@@ -30,7 +30,8 @@ router.post('/', checkAdmin, async (req, res) => {
             return res.status(400).json({ message: 'Email đã tồn tại' });
 
         const hashedPassword = await bcrypt.hash(password, 10);
-        const user = new User({ username, name, email, phone, address, role: role || 'user', password: hashedPassword });
+        // Users created by admin are trusted — mark as verified so they don't need email confirmation
+        const user = new User({ username, name, email, phone, address, role: role || 'user', password: hashedPassword, isVerified: true });
         await user.save();
 
         const { password: _, ...safeUser } = user.toObject();
@@ -70,7 +71,11 @@ router.put('/:id', checkAdmin, async (req, res) => {
             if (existing && existing._id.toString() !== req.params.id) {
                 return res.status(400).json({ message: 'Email đã tồn tại' });
             }
+            // If admin updates the email, treat it as already verified (admin action)
             updates.email = email;
+            updates.isVerified = true;
+            updates.verificationToken = undefined;
+            updates.verificationExpires = undefined;
         }
 
         Object.assign(user, updates);

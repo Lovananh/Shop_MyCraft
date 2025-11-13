@@ -42,6 +42,22 @@ app.use('/api/payment', paymentRoutes);
 app.use('/api/profile', profileRouter);     
 app.use('/uploads', express.static('uploads'));
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
-    console.log(`Server đang chạy trên cổng ${PORT}`);
-});
+
+// Initialize mailer before starting the server so emails send immediately
+const mailer = require('./utils/mailer');
+
+async function start() {
+    try {
+        if (typeof mailer.init === 'function') {
+            await mailer.init();
+        }
+    } catch (e) {
+        console.error('Mailer init error:', e);
+    }
+
+    app.listen(PORT, () => {
+        console.log(`Server đang chạy trên cổng ${PORT}`);
+    });
+}
+
+start();
