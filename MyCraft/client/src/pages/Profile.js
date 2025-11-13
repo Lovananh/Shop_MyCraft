@@ -1,15 +1,13 @@
 // src/pages/Profile.js
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import axios from 'axios';
-import '../assets/styles/profile.css'
+import api from '../utils/api'; // ← DÙNG api
+import '../assets/styles/profile.css';
+import { useAuth } from '../hooks/useAuth';
+
 function Profile() {
     const [userInfo, setUserInfo] = useState({
-        username: '',
-        name: '',
-        address: '',
-        phone: '',
-        avatar: 'https://place.dog/100/100',
+        username: '', name: '', address: '', phone: '', avatar: 'https://place.dog/100/100',
     });
     const [isEditing, setIsEditing] = useState(false);
     const [error, setError] = useState(null);
@@ -18,23 +16,20 @@ function Profile() {
     const fileInputRef = useRef(null);
 
     const navigate = useNavigate();
-    const user = JSON.parse(localStorage.getItem('user') || 'null');
+    const { token, logout } = useAuth();
 
     useEffect(() => {
-        if (!user?.userId) {
+        if (!token) {
             navigate('/login');
             return;
         }
         fetchUserProfile();
-    }, [navigate, user?.userId]);
+    }, [navigate, token]);
 
     const fetchUserProfile = async () => {
         setLoading(true);
         try {
-            const res = await axios.get('http://localhost:5000/api/profile', {
-                headers: { 'user-id': user.userId },
-            });
-            console.log('DỮ LIỆU PROFILE:', res.data)
+            const res = await api.get('/profile'); // ← api
             setUserInfo(res.data);
         } catch (err) {
             setError('Không thể tải thông tin');
@@ -50,33 +45,25 @@ function Profile() {
 
     const handleSave = async () => {
         if (!/^[a-zA-ZÀ-ỹ\s]{2,100}$/.test(userInfo.name)) {
-            setError('Tên không hợp lệ');
-            return;
+            setError('Tên không hợp lệ'); return;
         }
         if (userInfo.phone && !/^(?:\+84|0)(?:3[2-9]|5[689]|7[06-9]|8[1-9]|9[0-9])[0-9]{7}$/.test(userInfo.phone)) {
-            setError('SĐT không hợp lệ');
-            return;
+            setError('SĐT không hợp lệ'); return;
         }
 
         setLoading(true);
         try {
-            await axios.put('http://localhost:5000/api/profile', {
-                // XÓA DÒNG NÀY → username không được cập nhật
-                // username: user.username,
+            await api.put('/profile', {
                 name: userInfo.name,
                 address: userInfo.address,
                 phone: userInfo.phone,
-            }, {
-                headers: { 'user-id': user.userId },
             });
-
-            // CẬP NHẬT LẠI userInfo từ server
-            await fetchUserProfile(); // TẢI LẠI DỮ LIỆU MỚI
-
+            await fetchUserProfile();
             setSuccess('Cập nhật thành công!');
             setIsEditing(false);
+            setError(null);
         } catch (err) {
-            setError(err.response?.data?.message || 'Lỗi');
+            setError(err.response?.data?.message || 'Lỗi server');
         } finally {
             setLoading(false);
         }
@@ -85,18 +72,16 @@ function Profile() {
     const handleAvatarChange = async (e) => {
         const file = e.target.files[0];
         if (!file) return;
-
         const formData = new FormData();
         formData.append('avatar', file);
-
         setLoading(true);
         try {
-            const res = await axios.post('http://localhost:5000/api/profile/avatar', formData, {
-               headers: { 'user-id': user.userId }
+            const res = await api.post('/profile/avatar', formData, {
+                headers: { 'Content-Type': 'multipart/form-data' }
             });
-            console.log('AVATAR MỚI:', res.data.avatar);
-            setUserInfo(prev => ({ ...prev, avatar: res.data.avatar + '?t=' + Date.now() })); // cache busting
+            setUserInfo(prev => ({ ...prev, avatar: res.data.avatar + '?t=' + Date.now() }));
             setSuccess('Cập nhật ảnh đại diện thành công!');
+            setError(null);
         } catch (err) {
             setError(err.response?.data?.message || 'Lỗi upload ảnh');
         } finally {
@@ -111,18 +96,12 @@ function Profile() {
                     <Link to="/products">Sản phẩm</Link>
                     <Link to="/cart">Giỏ hàng</Link>
                     <Link to="/orders">Đơn hàng</Link>
-                    
-                    <button onClick={() => {
-                        localStorage.removeItem('user');
-                        navigate('/login');
-                    }}>Đăng xuất</button>
                     <Link to="/profile">Cá nhân</Link>
+                    <button onClick={logout}>Đăng xuất</button>
                 </div>
             </nav>
-
             <div className="page-content">
                 <div className="profile-container">
-                    {/* <button onClick={() => navigate(-1)} className="back-button">Quay lại</button> */}
                     <h2>Thông tin cá nhân</h2>
 
                     {error && <p className="error">{error}</p>}

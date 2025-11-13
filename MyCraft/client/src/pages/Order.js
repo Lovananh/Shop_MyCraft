@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import axios from 'axios';
 import '../assets/styles/order.css'; // CSS mới
+import { useAuth } from '../hooks/useAuth';
 
 function Order() {
     const [orders, setOrders] = useState([]);
@@ -12,22 +13,25 @@ function Order() {
     const [error, setError] = useState(null);
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
-    const user = JSON.parse(localStorage.getItem('user') || 'null');
+    // const user = JSON.parse(localStorage.getItem('user') || 'null');
+    const { token, role, logout } = useAuth();
 
     useEffect(() => {
-        if (!user?.userId) {
+        // if (!user?.userId) {
+        if (!token) {
             navigate('/login');
             return;
         }
         fetchOrders();
         fetchUserInfo();
-    }, [navigate, user?.userId]);
+    }, [navigate, token]);
 
     const fetchOrders = async () => {
         setLoading(true);
         try {
             const res = await axios.get('http://localhost:5000/api/orders', {
-                headers: { 'user-id': user.userId },
+                // headers: { 'user-id': user.userId },
+                headers: { Authorization: `Bearer ${token}` }
             });
             // Sắp xếp: mới nhất trước
             setOrders((res.data || []).sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)));
@@ -42,7 +46,8 @@ function Order() {
     const fetchUserInfo = async () => {
         try {
             const res = await axios.get('http://localhost:5000/api/users/profile', {
-                headers: { 'user-id': user.userId },
+                // headers: { 'user-id': user.userId },
+                headers: { Authorization: `Bearer ${token}` }
             });
             setUserInfo(res.data);
         } catch (err) {
@@ -55,7 +60,8 @@ function Order() {
         if (!window.confirm('Hủy đơn hàng?')) return;
         try {
             await axios.put(`http://localhost:5000/api/orders/${orderId}/cancel`, {}, {
-                headers: { 'user-id': user.userId },
+                // headers: { 'user-id': user.userId },
+                headers: { Authorization: `Bearer ${token}` }
             });
             fetchOrders();
         } catch (err) {
@@ -76,7 +82,8 @@ function Order() {
     const saveEdit = async () => {
         try {
             await axios.put(`http://localhost:5000/api/orders/${editingOrderId}/address`, editForm, {
-                headers: { 'user-id': user.userId },
+                // headers: { 'user-id': user.userId },
+                headers: { Authorization: `Bearer ${token}` }
             });
             setEditingOrderId(null);
             fetchOrders();
@@ -95,11 +102,11 @@ function Order() {
                     <Link to="/products">Sản phẩm</Link>
                     <Link to="/cart">Giỏ hàng</Link>
                     <Link to="/orders">Đơn hàng</Link>
+                    <Link to="/profile">Cá nhân</Link>
                     <button onClick={() => {
                         localStorage.removeItem('user');
                         navigate('/login');
                     }}>Đăng xuất</button>
-                    <Link to="/profile">Cá nhân</Link>
                 </div>
             </nav>
 
@@ -178,7 +185,8 @@ function Order() {
                                             <button onClick={async () => {
                                                 try {
                                                     const res = await axios.get(`http://localhost:5000/api/payment/${order.orderId}/status`, {
-                                                        headers: { 'user-id': user.userId }
+                                                        // headers: { 'user-id': user.userId }
+                                                        headers: { Authorization: `Bearer ${token}` }
                                                     });
                                                     if (res.data.paymentStatus === 'PAID') {
                                                         alert('Đã thanh toán thành công!');
@@ -189,7 +197,10 @@ function Order() {
                                                             orderId: order.orderId,
                                                             amount: order.total,
                                                             description: `Thanh toán đơn hàng ${order.orderId}`
-                                                        }, { headers: { 'user-id': user.userId } });
+                                                        }, {
+                                                            // headers: { 'user-id': user.userId }
+                                                            headers: { Authorization: `Bearer ${token}` }
+                                                        });
                                                         window.open(qrRes.data.paymentUrl, '_blank');
                                                     }
                                                 } catch (err) {

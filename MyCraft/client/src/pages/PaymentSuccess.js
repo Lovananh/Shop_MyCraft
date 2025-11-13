@@ -2,6 +2,7 @@
 import React, { useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import axios from 'axios';
+import api from '../utils/api';
 
 function PaymentSuccess() {
     const [searchParams] = useSearchParams();
@@ -22,7 +23,8 @@ function PaymentSuccess() {
                     paymentMethod: 'qr',
                     paymentStatus: 'paid',
                     status: 'completed'
-                }, { headers: { 'user-id': JSON.parse(localStorage.getItem('user')).userId } });
+                });
+
 
                 localStorage.removeItem('pendingOrder');
                 localStorage.removeItem('cart'); // Xóa giỏ

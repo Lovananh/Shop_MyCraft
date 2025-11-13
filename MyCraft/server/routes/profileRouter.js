@@ -2,14 +2,16 @@
 const express = require('express');
 const router = express.Router();
 const User = require('../models/User');
-const checkUser = require('../middleware/checkUser');     // DÙNG CÁI NÀY
+const verifyToken = require('../middleware/verifyToken'); // ← THAY checkUser → verifyToken
 const upload = require('../middleware/upload');
-const checkAdmin = require('../middleware/checkAdmin');   // vẫn dùng cho admin
+const checkAdmin = require('../middleware/checkAdmin');
 
 // === LẤY PROFILE ===
-router.get('/', checkUser, async (req, res) => {
+router.get('/', verifyToken, async (req, res) => {
     try {
-        const user = await User.findById(req.userId).select('-password');
+        const user = await User.findById(req.user.userId).select('-password'); // ← req.user.userId
+        if (!user) return res.status(404).json({ message: 'Không tìm thấy người dùng' });
+
         res.json({
             _id: user._id,
             username: user.username,
@@ -25,10 +27,9 @@ router.get('/', checkUser, async (req, res) => {
 });
 
 // === CẬP NHẬT PROFILE ===
-router.put('/', checkUser, async (req, res) => {
+router.put('/', verifyToken, async (req, res) => {
     const { name, address, phone } = req.body;
 
-    // Validation
     if (name !== undefined && !/^[a-zA-ZÀ-ỹ\s]{2,100}$/.test(name)) {
         return res.status(400).json({ message: 'Tên không hợp lệ' });
     }
@@ -37,8 +38,13 @@ router.put('/', checkUser, async (req, res) => {
     }
 
     try {
-        const updates = { name, address, phone };
-        const user = await User.findByIdAndUpdate(req.userId, updates, { new: true }).select('-password');
+        const updates = {};
+        if (name !== undefined) updates.name = name;
+        if (address !== undefined) updates.address = address;
+        if (phone !== undefined) updates.phone = phone;
+
+        const user = await User.findByIdAndUpdate(req.user.userId, updates, { new: true }).select('-password');
+        if (!user) return res.status(404).json({ message: 'Không tìm thấy người dùng' });
 
         res.json({
             _id: user._id,
@@ -55,15 +61,15 @@ router.put('/', checkUser, async (req, res) => {
 });
 
 // === UPLOAD AVATAR ===
-router.post('/avatar', checkUser, upload.single('avatar'), async (req, res) => {
+router.post('/avatar', verifyToken, upload.single('avatar'), async (req, res) => {
     try {
         if (!req.file) return res.status(400).json({ message: 'Chưa chọn ảnh' });
 
-        // const avatarUrl = `/uploads/avatars/${req.file.filename}`;
-        const avatarUrl = `http://localhost:5000/uploads/avatars/${req.file.filename}`
-        const user = await User.findByIdAndUpdate(req.userId, { avatar: avatarUrl }, { new: true }).select('avatar');
+        const avatarUrl = `http://localhost:5000/uploads/avatars/${req.file.filename}`;
+        const user = await User.findByIdAndUpdate(req.user.userId, { avatar: avatarUrl }, { new: true }).select('avatar');
+        if (!user) return res.status(404).json({ message: 'Không tìm thấy người dùng' });
 
-        res.json({ avatar: user.avatarUrl });
+        res.json({ avatar: user.avatar }); // ← SỬA: user.avatar, không phải user.avatarUrl
     } catch (err) {
         res.status(500).json({ message: err.message });
     }
