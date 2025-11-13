@@ -53,22 +53,26 @@ function Register() {
         }
 
         try {
-            const response = await axios.post('http://localhost:5000/api/auth/register', {
+            // BƯỚC 1: ĐĂNG KÝ
+            const regRes = await axios.post('http://localhost:5000/api/auth/register', {
                 ...formData,
                 role: 'user',
             });
 
-            console.log('Register response:', response.data);
+            console.log('Register response:', regRes.data);
 
-            const { token, _id: userId, role } = response.data;
+            // BƯỚC 2: ĐĂNG NHẬP TỰ ĐỘNG
+            const loginRes = await axios.post('http://localhost:5000/api/auth/login', {
+                username: formData.username,
+                password: formData.password,
+            });
 
-            if (!token || !userId) {
-                throw new Error('Server không trả token hoặc userId');
-            }
+            const { token, role } = loginRes.data;
+            const userId = regRes.data._id;
 
-            const userData = { token, userId, role: role || 'user' };
+            const userData = { token, userId, role };
             localStorage.setItem('user', JSON.stringify(userData));
-            console.log('ĐÃ LƯU USER SAU ĐĂNG KÝ:', userData);
+            console.log('ĐÃ LƯU USER SAU ĐĂNG KÝ + ĐĂNG NHẬP:', userData);
 
             navigate('/products');
         } catch (err) {
