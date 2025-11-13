@@ -15,6 +15,7 @@ router.get('/', verifyToken, async (req, res) => {
             _id: user._id,
             username: user.username,
             name: user.name || '',
+            email: user.email || '',
             address: user.address || '',
             phone: user.phone || '',
             avatar: user.avatar || 'https://place.dog/100/100',
@@ -28,7 +29,7 @@ router.get('/', verifyToken, async (req, res) => {
 
 // === CẬP NHẬT PROFILE ===
 router.put('/', verifyToken, async (req, res) => {
-    const { name, address, phone } = req.body;
+    const { name, address, phone, email } = req.body;
 
     // Validation
     if (name !== undefined && !/^[a-zA-ZÀ-ỹ\s]{2,100}$/.test(name)) {
@@ -43,6 +44,17 @@ router.put('/', verifyToken, async (req, res) => {
         if (name !== undefined) updates.name = name;
         if (address !== undefined) updates.address = address;
         if (phone !== undefined) updates.phone = phone;
+        if (email !== undefined) updates.email = email;
+
+        // Nếu đổi email, kiểm tra định dạng và unique
+        if (email !== undefined) {
+            const emailRegex = /^\S+@\S+\.\S+$/;
+            if (!emailRegex.test(email)) return res.status(400).json({ message: 'Email không hợp lệ' });
+            const existing = await User.findOne({ email });
+            if (existing && existing._id.toString() !== req.user.userId) {
+                return res.status(400).json({ message: 'Email đã tồn tại' });
+            }
+        }
 
         const user = await User.findByIdAndUpdate(
             req.user.userId,
@@ -56,6 +68,7 @@ router.put('/', verifyToken, async (req, res) => {
             _id: user._id,
             username: user.username,
             name: user.name || '',
+            email: user.email || '',
             address: user.address || '',
             phone: user.phone || '',
             avatar: user.avatar || 'https://place.dog/100/100',

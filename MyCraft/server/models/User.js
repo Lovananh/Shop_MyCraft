@@ -28,6 +28,14 @@ const userSchema = new mongoose.Schema({
         maxlength: [100, 'Tên không được vượt quá 100 ký tự'],
         match: [/^[a-zA-ZÀ-ỹ\s]+$/, 'Tên chỉ được chứa chữ cái và dấu cách'],
     },
+    email: {
+        type: String,
+        required: [true, 'Email là bắt buộc'],
+        unique: true,
+        lowercase: true,
+        trim: true,
+        match: [/^\S+@\S+\.\S+$/, 'Email không hợp lệ'],
+    },
     address: {
         type: String,
         trim: true,

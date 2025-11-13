@@ -8,6 +8,7 @@ function Register() {
         username: '',
         password: '',
         name: '',
+        email: '',
         address: '',
         phone: '',
     });
@@ -42,6 +43,13 @@ function Register() {
 
         if (!/^[a-zA-ZÀ-ỹ\s]{2,100}$/.test(formData.name)) {
             setError('Họ tên: 2-100 ký tự, chỉ chữ và khoảng trắng');
+            setLoading(false);
+            return;
+        }
+
+        const emailRegex = /^\S+@\S+\.\S+$/;
+        if (!emailRegex.test(formData.email)) {
+            setError('Email không hợp lệ');
             setLoading(false);
             return;
         }
@@ -97,6 +105,10 @@ function Register() {
                 <div className="form-group">
                     <label>Mật khẩu:</label>
                     <input type="password" name="password" value={formData.password} onChange={handleInputChange} required />
+                </div>
+                <div className="form-group">
+                    <label>Email:</label>
+                    <input type="email" name="email" value={formData.email} onChange={handleInputChange} required />
                 </div>
                 <div className="form-group">
                     <label>Họ tên:</label>

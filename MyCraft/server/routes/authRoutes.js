@@ -5,10 +5,10 @@ const User = require('../models/User');
 
 router.post('/register', async (req, res) => {
     try {
-        const { username, password, name, address, phone, role } = req.body;
+        const { username, password, name, email, address, phone, role } = req.body;
 
-        if (!username || !password || !name) {
-            return res.status(400).json({ message: 'Tên đăng nhập, mật khẩu và tên là bắt buộc' });
+        if (!username || !password || !name || !email) {
+            return res.status(400).json({ message: 'Tên đăng nhập, mật khẩu, tên và email là bắt buộc' });
         }
         if (username.length < 3 || username.length > 50) {
             return res.status(400).json({ message: 'Tên đăng nhập phải từ 3 đến 50 ký tự' });
@@ -22,6 +22,10 @@ router.post('/register', async (req, res) => {
         if (phone && !/^\d{10,15}$/.test(phone)) {
             return res.status(400).json({ message: 'Số điện thoại không hợp lệ' });
         }
+        const emailRegex = /^\S+@\S+\.\S+$/;
+        if (!emailRegex.test(email)) {
+            return res.status(400).json({ message: 'Email không hợp lệ' });
+        }
         if (role && !['user', 'admin'].includes(role)) {
             return res.status(400).json({ message: 'Vai trò phải là "user" hoặc "admin"' });
         }
@@ -29,12 +33,16 @@ router.post('/register', async (req, res) => {
         if (await User.findOne({ username })) {
             return res.status(400).json({ message: 'Tên đăng nhập đã tồn tại' });
         }
+        if (await User.findOne({ email })) {
+            return res.status(400).json({ message: 'Email đã tồn tại' });
+        }
 
         const hashedPassword = await bcrypt.hash(password, 10);
         const user = new User({
             username,
             password: hashedPassword,
             name,
+            email,
             address,
             phone,
             role: role || 'user',
@@ -44,10 +52,15 @@ router.post('/register', async (req, res) => {
         res.status(201).json({
             _id: user._id,
             username: user.username,
+            email: user.email,
             role: user.role,
         });
     } catch (err) {
         console.error('Lỗi đăng ký:', err);
+        if (err.code === 11000) {
+            const dupKey = Object.keys(err.keyValue || {})[0] || 'Trường';
+            return res.status(400).json({ message: `${dupKey} đã tồn tại` });
+        }
         res.status(500).json({ message: 'Lỗi server' });
     }
 });

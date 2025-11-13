@@ -7,7 +7,7 @@ import { useAuth } from '../hooks/useAuth';
 
 function Profile() {
     const [userInfo, setUserInfo] = useState({
-        username: '', name: '', address: '', phone: '', avatar: 'https://place.dog/100/100',
+        username: '', name: '', email: '', address: '', phone: '', avatar: 'https://place.dog/100/100',
     });
     const [isEditing, setIsEditing] = useState(false);
     const [error, setError] = useState(null);
@@ -61,6 +61,12 @@ function Profile() {
             setError('Tên phải từ 2-100 ký tự, chỉ chữ và khoảng trắng');
             return;
         }
+        const emailRegex = /^\S+@\S+\.\S+$/;
+        if (userInfo.email && !emailRegex.test(userInfo.email)) {
+            setError('Email không hợp lệ');
+            return;
+        }
+
         if (userInfo.phone && !/^(?:\+84|0)(?:3[2-9]|5[689]|7[06-9]|8[1-9]|9[0-9])[0-9]{7}$/.test(userInfo.phone)) {
             setError('Số điện thoại không hợp lệ');
             return;
@@ -70,6 +76,7 @@ function Profile() {
         try {
             await api.put('/profile', {
                 name: userInfo.name,
+                email: userInfo.email,
                 address: userInfo.address,
                 phone: userInfo.phone,
             });
@@ -174,6 +181,10 @@ function Profile() {
                                     <input name="name" value={userInfo.name} onChange={handleInputChange} />
                                 </div>
                                 <div className="info-group">
+                                    <label>Email:</label>
+                                    <input name="email" value={userInfo.email} onChange={handleInputChange} />
+                                </div>
+                                <div className="info-group">
                                     <label>SĐT:</label>
                                     <input name="phone" value={userInfo.phone} onChange={handleInputChange} />
                                 </div>
@@ -193,6 +204,10 @@ function Profile() {
                                 <div className="info-group">
                                     <label>Họ tên:</label>
                                     <p>{userInfo.name || 'Chưa cập nhật'}</p>
+                                </div>
+                                <div className="info-group">
+                                    <label>Email:</label>
+                                    <p>{userInfo.email || 'Chưa có'}</p>
                                 </div>
                                 <div className="info-group">
                                     <label>SĐT:</label>

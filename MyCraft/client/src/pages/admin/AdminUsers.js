@@ -9,7 +9,7 @@ function AdminUsers() {
     const [searchTerm, setSearchTerm] = useState('');
     const [currentPage, setCurrentPage] = useState(1);
     const [usersPerPage] = useState(5);
-    const [formData, setFormData] = useState({ username: '', name: '', phone: '', address: '', role: 'user', password: '' });
+    const [formData, setFormData] = useState({ username: '', name: '', email: '', phone: '', address: '', role: 'user', password: '' });
     const [editUserId, setEditUserId] = useState(null);
     const [error, setError] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -44,7 +44,7 @@ function AdminUsers() {
         try {
             const res = await api.post('/users', formData);
             setUsers(prev => [...prev, res.data]);
-            setFormData({ username: '', name: '', phone: '', address: '', role: 'user', password: '' });
+            setFormData({ username: '', name: '', email: '', phone: '', address: '', role: 'user', password: '' });
             alert('Thêm thành công');
         } catch (err) {
             setError(err?.response?.data?.message || 'Lỗi khi thêm');
@@ -55,7 +55,7 @@ function AdminUsers() {
 
     const handleEditUser = (user) => {
         setEditUserId(user._id);
-        setFormData({ username: user.username, name: user.name, phone: user.phone || '', address: user.address || '', role: user.role, password: '' });
+        setFormData({ username: user.username, name: user.name, email: user.email || '', phone: user.phone || '', address: user.address || '', role: user.role, password: '' });
     };
 
     const handleUpdateUser = async (e) => {
@@ -65,7 +65,7 @@ function AdminUsers() {
             const res = await api.put(`/users/${editUserId}`, formData);
             setUsers(prev => prev.map(u => u._id === editUserId ? res.data : u));
             setEditUserId(null);
-            setFormData({ username: '', name: '', phone: '', address: '', role: 'user', password: '' });
+            setFormData({ username: '', name: '', email: '', phone: '', address: '', role: 'user', password: '' });
             alert('Cập nhật thành công!');
         } catch (err) {
             setError(err.response?.data?.message || 'Lỗi khi cập nhật');
@@ -118,6 +118,9 @@ function AdminUsers() {
                         <label>Họ tên:</label>
                         <input type="text" value={formData.name} onChange={e => setFormData(prev => ({ ...prev, name: e.target.value }))} required /></div>
                     <div className="form-group">
+                        <label>Email:</label>
+                            <input type="email" value={formData.email} onChange={e => setFormData(prev => ({ ...prev, email: e.target.value }))} required /></div>
+                    <div className="form-group">
                         <label>Mật khẩu:</label>
                         <input type="password" value={formData.password}
                             onChange={e => setFormData(prev => ({ ...prev, password: e.target.value }))}
@@ -137,7 +140,7 @@ function AdminUsers() {
                     </div>
                     <div className="form-buttons">
                         <button type="submit" disabled={loading} className="submit-button">{loading ? 'Đang xử lý...' : editUserId ? 'Cập nhật' : 'Thêm'}</button>
-                        {editUserId && <button type="button" onClick={() => { setEditUserId(null); setFormData({ username: '', name: '', phone: '', address: '', role: 'user', password: '' }); }} className="cancel-button">Hủy</button>}
+                        {editUserId && <button type="button" onClick={() => { setEditUserId(null); setFormData({ username: '', name: '', email: '', phone: '', address: '', role: 'user', password: '' }); }} className="cancel-button">Hủy</button>}
                     </div>
                 </form>
             </div>
@@ -147,12 +150,13 @@ function AdminUsers() {
                 {loading ? <p>Đang tải...</p> : currentUsers.length === 0 ? <p>Không có người dùng nào</p> : (
                     <>
                         <table className="product-table">
-                            <thead><tr><th>Tên đăng nhập</th><th>Họ tên</th><th>SĐT</th><th>Vai trò</th><th>Hành động</th></tr></thead>
+                            <thead><tr><th>Tên đăng nhập</th><th>Họ tên</th><th>Email</th><th>SĐT</th><th>Vai trò</th><th>Hành động</th></tr></thead>
                             <tbody>
                                 {currentUsers.map(u => (
                                     <tr key={u._id}>
                                         <td>{u.username}</td>
                                         <td>{u.name}</td>
+                                        <td>{u.email || '—'}</td>
                                         <td>{u.phone || '—'}</td>
                                         <td><span className={`status ${u.role}`}>{u.role === 'admin' ? 'Quản trị' : 'Người dùng'}</span></td>
                                         <td>

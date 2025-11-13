@@ -14,7 +14,7 @@ router.get('/profile', verifyToken, async (req, res) => {
             return res.status(401).json({ message: 'Thiếu user-id trong header' });
         }
 
-        const user = await User.findById(userId).select('name phone address');
+        const user = await User.findById(userId).select('name email phone address');
         if (!user) {
             return res.status(404).json({ message: 'Không tìm thấy người dùng' });
         }
@@ -35,7 +35,7 @@ router.put('/profile', verifyToken, async (req, res) => {
     // const userId = req.headers['user-id'];
     const userId = req.user.userId;
 
-    const { name, phone, address } = req.body;
+    const { name, phone, address, email } = req.body;
 
     if (!userId) return res.status(401).json({ message: 'Chưa đăng nhập' });
 
@@ -46,9 +46,18 @@ router.put('/profile', verifyToken, async (req, res) => {
         if (name) user.name = name;
         if (phone) user.phone = phone;
         if (address) user.address = address;
+        if (email) {
+            // validate email format
+            const emailRegex = /^\S+@\S+\.\S+$/;
+            if (!emailRegex.test(email)) return res.status(400).json({ message: 'Email không hợp lệ' });
+            // check unique
+            const existing = await User.findOne({ email });
+            if (existing && existing._id.toString() !== userId) return res.status(400).json({ message: 'Email đã tồn tại' });
+            user.email = email;
+        }
 
         await user.save();
-        res.json({ name: user.name, phone: user.phone, address: user.address });
+        res.json({ name: user.name, email: user.email, phone: user.phone, address: user.address });
     } catch (err) {
         res.status(500).json({ message: err.message });
     }
