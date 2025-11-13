@@ -1,12 +1,19 @@
+// routes/auth.js
 const express = require('express');
 const router = express.Router();
 const bcrypt = require('bcrypt');
 const User = require('../models/User');
+require('dotenv').config();
 
+const jwt = require('jsonwebtoken');
+const JWT_SECRET = process.env.JWT_SECRET;
+
+// ==================== REGISTER ====================
 router.post('/register', async (req, res) => {
     try {
         const { username, password, name, address, phone, role } = req.body;
 
+        // === VALIDATION ===
         if (!username || !password || !name) {
             return res.status(400).json({ message: 'Tên đăng nhập, mật khẩu và tên là bắt buộc' });
         }
@@ -41,20 +48,26 @@ router.post('/register', async (req, res) => {
         });
         await user.save();
 
+        // === TRẢ VỀ TOKEN + userId + role ===
+        const token = jwt.sign(
+            { userId: user._id, role: user.role },
+            JWT_SECRET,
+            { expiresIn: '7d' }
+        );
+
         res.status(201).json({
-            _id: user._id,
-            username: user.username,
-            role: user.role,
+            token,
+            userId: user._id,
+            role: user.role
         });
+
     } catch (err) {
         console.error('Lỗi đăng ký:', err);
         res.status(500).json({ message: 'Lỗi server' });
     }
 });
 
-const jwt = require('jsonwebtoken');
-const JWT_SECRET = process.env.JWT_SECRET;
-
+// ==================== LOGIN ====================
 router.post('/login', async (req, res) => {
     try {
         const { username, password } = req.body;
@@ -70,11 +83,12 @@ router.post('/login', async (req, res) => {
             { expiresIn: '7d' }
         );
 
+        // TRẢ VỀ userId
         res.json({
             token,
+            userId: user._id,
             role: user.role
         });
-
 
     } catch (err) {
         console.error('Lỗi đăng nhập:', err);

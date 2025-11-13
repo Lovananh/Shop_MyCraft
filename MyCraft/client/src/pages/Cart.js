@@ -1,20 +1,19 @@
 // src/pages/Cart.js
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import axios from 'axios';
+import api from '../utils/api';
 import { useAuth } from '../hooks/useAuth';
 
 function Cart() {
     const [cartItems, setCartItems] = useState([]);
-    const [selectedItems, setSelectedItems] = useState([]); // ← MẢNG productId (string)
+    const [selectedItems, setSelectedItems] = useState([]);
     const [error, setError] = useState(null);
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
-    // const user = JSON.parse(localStorage.getItem('user') || 'null');
-    const { token, role, logout } = useAuth();
+    const { token, logout } = useAuth();
 
     useEffect(() => {
-        // if (!user?.userId) {
+        if (token === null) return; // Chưa load xong → không làm gì
         if (!token) {
             navigate('/login', { state: { message: 'Vui lòng đăng nhập để xem giỏ hàng' } });
             return;
@@ -25,10 +24,7 @@ function Cart() {
         const fetchCart = async () => {
             setLoading(true);
             try {
-                const response = await axios.get('http://localhost:5000/api/cart', {
-                    // headers: { 'user-id': user.userId },
-                    headers: { Authorization: `Bearer ${token}` }
-                });
+                const response = await api.get('/cart');
                 if (isMounted) {
                     const items = response.data.items || [];
                     setCartItems(items);
@@ -36,7 +32,11 @@ function Cart() {
                     setError(null);
                 }
             } catch (err) {
-                if (isMounted) setError(err.response?.data?.message || 'Lỗi khi lấy giỏ hàng');
+                if (isMounted) {
+                    const msg = err.response?.data?.message || 'Lỗi khi lấy giỏ hàng';
+                    setError(msg);
+                    if (err.response?.status === 401) logout();
+                }
             } finally {
                 if (isMounted) setLoading(false);
             }
@@ -44,18 +44,13 @@ function Cart() {
 
         fetchCart();
         return () => { isMounted = false; };
-        // }, [navigate, user?.userId]);
-    }, [navigate, token]);
+    }, [navigate, token]); // XÓA logout khỏi dependency
 
+    // SỬA: Thêm lại hàm handleQuantityChange
     const handleQuantityChange = async (productId, quantity) => {
         const q = Math.max(1, parseInt(quantity) || 1);
         try {
-            await axios.put(
-                'http://localhost:5000/api/cart',
-                { productId: productId.toString(), quantity: q },
-                // { headers: { 'user-id': user.userId } }
-                { headers: { Authorization: `Bearer ${token}` } }
-            );
+            await api.put('/cart', { productId: productId.toString(), quantity: q });
             setCartItems(prev => prev.map(item =>
                 item.productId === productId ? { ...item, quantity: q } : item
             ));
@@ -77,14 +72,12 @@ function Cart() {
         .filter(item => selectedItems.includes(item.productId.toString()))
         .reduce((sum, item) => sum + item.price * item.quantity, 0);
 
-    // SỬA: LẤY THÔNG TIN TỪ cartItems, KHÔNG TỪ selectedItems
     const handleCheckout = () => {
         if (selectedItems.length === 0) {
             alert('Vui lòng chọn ít nhất 1 sản phẩm');
             return;
         }
 
-        // LẤY SẢN PHẨM ĐÃ CHỌN TỪ cartItems
         const selectedFullItems = cartItems
             .filter(item => selectedItems.includes(item.productId.toString()))
             .map(item => ({
@@ -95,27 +88,14 @@ function Cart() {
                 quantity: item.quantity
             }));
 
-        if (selectedFullItems.length === 0) {
-            alert('Không có sản phẩm hợp lệ để thanh toán');
-            return;
-        }
-
         navigate('/checkout', {
-            state: {
-                selectedItems: selectedFullItems,
-                fromCart: true
-            }
+            state: { selectedItems: selectedFullItems, fromCart: true }
         });
     };
 
     const handleRemoveItem = async (productId) => {
         try {
-            await axios.delete(
-                `http://localhost:5000/api/cart/${productId.toString()}`,
-                // { headers: { 'user-id': user.userId } },
-                { headers: { Authorization: `Bearer ${token}` } }
-            );
-
+            await api.delete(`/cart/${productId.toString()}`);
             setCartItems(prev => prev.filter(item => item.productId !== productId));
             setSelectedItems(prev => prev.filter(id => id !== productId.toString()));
         } catch (err) {
@@ -131,10 +111,7 @@ function Cart() {
                     <Link to="/cart">Giỏ hàng</Link>
                     <Link to="/orders">Đơn hàng</Link>
                     <Link to="/profile">Cá nhân</Link>
-                    <button onClick={() => {
-                        localStorage.removeItem('user');
-                        navigate('/login');
-                    }}>Đăng xuất</button>
+                    <button onClick={logout}>Đăng xuất</button>
                 </div>
             </nav>
 
@@ -145,7 +122,7 @@ function Cart() {
                     {loading && <p>Đang tải...</p>}
                     {!loading && cartItems.length === 0 ? (
                         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                            <p style={{ textAlign: 'center' }}>Chưa có sản phẩm nào trong giỏ hàng, hãy trở lại trang chủ để thêm vào giỏ hàng</p>
+                            <p style={{ textAlign: 'center' }}>Chưa có sản phẩm nào trong giỏ hàng</p>
                             <button style={{ width: '150px', marginTop: '20px' }} onClick={() => navigate('/')} className="back-button-in-cart">
                                 Trang chủ
                             </button>

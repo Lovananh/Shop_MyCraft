@@ -2,26 +2,26 @@
 const express = require('express');
 const router = express.Router();
 const User = require('../models/User');
-const verifyToken = require('../middleware/verifyToken'); // ← THAY checkUser → verifyToken
+const verifyToken = require('../middleware/verifyToken');
 const upload = require('../middleware/upload');
-const checkAdmin = require('../middleware/checkAdmin');
 
 // === LẤY PROFILE ===
 router.get('/', verifyToken, async (req, res) => {
     try {
-        const user = await User.findById(req.user.userId).select('-password'); // ← req.user.userId
+        const user = await User.findById(req.user.userId).select('-password');
         if (!user) return res.status(404).json({ message: 'Không tìm thấy người dùng' });
 
         res.json({
             _id: user._id,
             username: user.username,
-            name: user.name,
-            address: user.address,
-            phone: user.phone,
-            avatar: user.avatar,
+            name: user.name || '',
+            address: user.address || '',
+            phone: user.phone || '',
+            avatar: user.avatar || 'https://place.dog/100/100',
             role: user.role,
         });
     } catch (err) {
+        console.error('Lỗi lấy profile:', err);
         res.status(500).json({ message: 'Lỗi server' });
     }
 });
@@ -30,6 +30,7 @@ router.get('/', verifyToken, async (req, res) => {
 router.put('/', verifyToken, async (req, res) => {
     const { name, address, phone } = req.body;
 
+    // Validation
     if (name !== undefined && !/^[a-zA-ZÀ-ỹ\s]{2,100}$/.test(name)) {
         return res.status(400).json({ message: 'Tên không hợp lệ' });
     }
@@ -43,19 +44,25 @@ router.put('/', verifyToken, async (req, res) => {
         if (address !== undefined) updates.address = address;
         if (phone !== undefined) updates.phone = phone;
 
-        const user = await User.findByIdAndUpdate(req.user.userId, updates, { new: true }).select('-password');
+        const user = await User.findByIdAndUpdate(
+            req.user.userId,
+            updates,
+            { new: true, runValidators: true }
+        ).select('-password');
+
         if (!user) return res.status(404).json({ message: 'Không tìm thấy người dùng' });
 
         res.json({
             _id: user._id,
             username: user.username,
-            name: user.name,
-            address: user.address,
-            phone: user.phone,
-            avatar: user.avatar,
+            name: user.name || '',
+            address: user.address || '',
+            phone: user.phone || '',
+            avatar: user.avatar || 'https://place.dog/100/100',
             role: user.role,
         });
     } catch (err) {
+        console.error('Lỗi cập nhật profile:', err);
         res.status(500).json({ message: 'Lỗi server' });
     }
 });
@@ -66,12 +73,18 @@ router.post('/avatar', verifyToken, upload.single('avatar'), async (req, res) =>
         if (!req.file) return res.status(400).json({ message: 'Chưa chọn ảnh' });
 
         const avatarUrl = `http://localhost:5000/uploads/avatars/${req.file.filename}`;
-        const user = await User.findByIdAndUpdate(req.user.userId, { avatar: avatarUrl }, { new: true }).select('avatar');
+        const user = await User.findByIdAndUpdate(
+            req.user.userId,
+            { avatar: avatarUrl },
+            { new: true }
+        ).select('avatar');
+
         if (!user) return res.status(404).json({ message: 'Không tìm thấy người dùng' });
 
-        res.json({ avatar: user.avatar }); // ← SỬA: user.avatar, không phải user.avatarUrl
+        res.json({ avatar: user.avatar });
     } catch (err) {
-        res.status(500).json({ message: err.message });
+        console.error('Lỗi upload avatar:', err);
+        res.status(500).json({ message: 'Lỗi upload ảnh' });
     }
 });
 

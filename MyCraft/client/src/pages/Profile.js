@@ -1,7 +1,7 @@
 // src/pages/Profile.js
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import api from '../utils/api'; // ← DÙNG api
+import api from '../utils/api';
 import '../assets/styles/profile.css';
 import { useAuth } from '../hooks/useAuth';
 
@@ -19,20 +19,33 @@ function Profile() {
     const { token, logout } = useAuth();
 
     useEffect(() => {
+        // NGĂN REDIRECT NẾU token ĐANG ĐƯỢC LOAD
+        if (token === null) return; // Chưa load xong → không làm gì
         if (!token) {
-            navigate('/login');
+            navigate('/login', { state: { message: 'Vui lòng đăng nhập' } });
             return;
         }
         fetchUserProfile();
-    }, [navigate, token]);
+    }, [token, navigate]); // Chỉ chạy khi token thay đổi
 
     const fetchUserProfile = async () => {
+        console.log('Profile.js - Gọi api.get("/profile")...');
         setLoading(true);
         try {
-            const res = await api.get('/profile'); // ← api
-            setUserInfo(res.data);
+            const res = await api.get('/profile');
+            console.log('Profile.js - Nhận dữ liệu:', res.data);
+            setUserInfo({
+                ...res.data,
+                avatar: res.data.avatar || 'https://place.dog/100/100'
+            });
+            setError(null);
         } catch (err) {
-            setError('Không thể tải thông tin');
+            console.error('Profile.js - Lỗi:', err.response?.data);
+            const msg = err.response?.data?.message || 'Không thể tải thông tin người dùng';
+            setError(msg);
+            if (err.response?.status === 401) {
+                logout();
+            }
         } finally {
             setLoading(false);
         }
@@ -45,10 +58,12 @@ function Profile() {
 
     const handleSave = async () => {
         if (!/^[a-zA-ZÀ-ỹ\s]{2,100}$/.test(userInfo.name)) {
-            setError('Tên không hợp lệ'); return;
+            setError('Tên phải từ 2-100 ký tự, chỉ chữ và khoảng trắng'); 
+            return;
         }
         if (userInfo.phone && !/^(?:\+84|0)(?:3[2-9]|5[689]|7[06-9]|8[1-9]|9[0-9])[0-9]{7}$/.test(userInfo.phone)) {
-            setError('SĐT không hợp lệ'); return;
+            setError('Số điện thoại không hợp lệ'); 
+            return;
         }
 
         setLoading(true);
@@ -72,14 +87,19 @@ function Profile() {
     const handleAvatarChange = async (e) => {
         const file = e.target.files[0];
         if (!file) return;
+
         const formData = new FormData();
         formData.append('avatar', file);
+
         setLoading(true);
         try {
             const res = await api.post('/profile/avatar', formData, {
                 headers: { 'Content-Type': 'multipart/form-data' }
             });
-            setUserInfo(prev => ({ ...prev, avatar: res.data.avatar + '?t=' + Date.now() }));
+            setUserInfo(prev => ({ 
+                ...prev, 
+                avatar: res.data.avatar + '?t=' + Date.now() 
+            }));
             setSuccess('Cập nhật ảnh đại diện thành công!');
             setError(null);
         } catch (err) {
@@ -100,6 +120,7 @@ function Profile() {
                     <button onClick={logout}>Đăng xuất</button>
                 </div>
             </nav>
+
             <div className="page-content">
                 <div className="profile-container">
                     <h2>Thông tin cá nhân</h2>

@@ -1,45 +1,60 @@
-// src/pages/PaymentSuccess.js
-import React, { useEffect } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
-import axios from 'axios';
+// src/pages/PaymentSuccess.js – HOÀN CHỈNH 100%
+import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import api from '../utils/api';
+import { useAuth } from '../hooks/useAuth';
 
 function PaymentSuccess() {
-    const [searchParams] = useSearchParams();
+    const [status, setStatus] = useState('Đang xử lý...');
     const navigate = useNavigate();
-    const tempId = searchParams.get('tempId');
+    const { token } = useAuth();
 
     useEffect(() => {
-        const createOrder = async () => {
-            const pending = JSON.parse(localStorage.getItem('pendingOrder') || '{}');
-            if (!pending.tempOrderId || pending.tempOrderId !== tempId) {
-                navigate('/orders');
+        const createOrderFromPending = async () => {
+            const pending = localStorage.getItem('pendingOrder');
+            if (!pending) {
+                setStatus('Không tìm thấy đơn hàng tạm');
+                setTimeout(() => navigate('/cart'), 2000);
+                return;
+            }
+
+            if (!token) {
+                setStatus('Chưa đăng nhập');
+                setTimeout(() => navigate('/login'), 2000);
                 return;
             }
 
             try {
-                await axios.post('http://localhost:5000/api/orders', {
-                    ...pending,
+                const orderData = JSON.parse(pending);
+                localStorage.removeItem('pendingOrder'); // XÓA NGAY ĐỂ TRÁNH TẠO LẶP
+
+                const res = await api.post('/orders', {
+                    items: orderData.items,
+                    name: orderData.name,
+                    phone: orderData.phone,
+                    address: orderData.address,
                     paymentMethod: 'qr',
-                    paymentStatus: 'paid',
-                    status: 'completed'
+                    tempOrderId: orderData.tempOrderId
                 });
 
-
-                localStorage.removeItem('pendingOrder');
-                localStorage.removeItem('cart'); // Xóa giỏ
-                alert('Thanh toán QR thành công! Đơn hàng đã được tạo.');
-                navigate('/orders');
+                setStatus('Thanh toán thành công! Đơn hàng đã được tạo.');
+                setTimeout(() => navigate('/orders'), 3000);
             } catch (err) {
-                alert('Lỗi tạo đơn');
-                navigate('/cart');
+                console.error('Lỗi tạo đơn:', err);
+                setStatus('Lỗi tạo đơn: ' + (err.response?.data?.message || 'Server lỗi'));
+                setTimeout(() => navigate('/cart'), 5000);
             }
         };
 
-        createOrder();
-    }, [tempId, navigate]);
+        createOrderFromPending();
+    }, [navigate, token]);
 
-    return <div>Đang xử lý thanh toán...</div>;
+    return (
+        <div style={{ textAlign: 'center', padding: '50px', fontSize: '1.2rem' }}>
+            <h2>Thanh toán QR</h2>
+            <p>{status}</p>
+        </div>
+    );
 }
 
 export default PaymentSuccess;
