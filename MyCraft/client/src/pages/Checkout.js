@@ -1,7 +1,7 @@
-// src/pages/Checkout.js – ĐÃ SỬA HOÀN CHỈNH
+// src/pages/Checkout.js – HOÀN CHỈNH 100%
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
-import axios from 'axios';
+import api from '../utils/api'; // DÙNG api.js ĐỂ GỬI TOKEN TỰ ĐỘNG
 import { useAuth } from '../hooks/useAuth';
 
 function Checkout() {
@@ -14,15 +14,14 @@ function Checkout() {
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
     const location = useLocation();
-    // const user = JSON.parse(localStorage.getItem('user') || 'null');
-    const { token, role, logout } = useAuth();
+    const { token, logout } = useAuth(); // DÙNG useAuth
 
     const selectedItems = location.state?.selectedItems || [];
 
     useEffect(() => {
-        // if (!user?.userId) {
+        if (token === null) return; // Chưa load xong → không làm gì
         if (!token) {
-            navigate('/login');
+            navigate('/login', { state: { message: 'Vui lòng đăng nhập để thanh toán' } });
             return;
         }
 
@@ -32,10 +31,7 @@ function Checkout() {
 
     const fetchUserInfo = async () => {
         try {
-            const res = await axios.get('http://localhost:5000/api/users/profile', {
-                // headers: { 'user-id': user.userId },
-                headers: { Authorization: `Bearer ${token}` }
-            });
+            const res = await api.get('/profile'); // DÙNG api.js
             setUserInfo(res.data);
             setForm(res.data);
         } catch (err) {
@@ -59,7 +55,7 @@ function Checkout() {
                         return item;
                     }
 
-                    const res = await axios.get(`http://localhost:5000/api/products/${item.productId}`);
+                    const res = await api.get(`/products/${item.productId}`); // DÙNG api.js
                     const product = res.data;
 
                     return {
@@ -95,41 +91,33 @@ function Checkout() {
         try {
             // === COD: TẠO ĐƠN NGAY ===
             if (paymentMethod === 'cod') {
-                const orderRes = await axios.post('http://localhost:5000/api/orders', {
+                const orderRes = await api.post('/orders', {
                     items: orderItems,
                     name: form.name,
                     phone: form.phone,
                     address: form.address,
                     paymentMethod: 'cod'
-                },
-                    // { headers: { 'user-id': user.userId } }
-                    { headers: { Authorization: `Bearer ${token}` } }
-                );
+                });
 
                 alert('Đặt hàng thành công!');
                 navigate('/orders');
                 return;
             }
 
-            // === QR: CHỈ TẠO LINK THANH TOÁN, CHƯA TẠO ĐƠN ===
+            // === QR: TẠO LINK THANH TOÁN ===
             if (paymentMethod === 'qr') {
                 const tempOrderId = `TEMP_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
 
-                const qrRes = await axios.post('http://localhost:5000/api/payment/create-qr-temp', {
-                    tempOrderId,
-                    items: orderItems,
-                    name: form.name,
-                    phone: form.phone,
-                    address: form.address,
-                    total: totalPrice
-                }, {
-                    // headers: { 'user-id': user.userId }
-                    headers: { Authorization: `Bearer ${token}` }
-                }
-                );
+                const qrRes = await api.post('/payment/create-qr-temp', {
+                tempOrderId,
+                items: orderItems,
+                name: form.name,
+                phone: form.phone,
+                address: form.address,
+                total: totalPrice
+                });
 
                 if (qrRes.data.success) {
-                    // Lưu tạm vào localStorage để dùng sau khi thanh toán
                     localStorage.setItem('pendingOrder', JSON.stringify({
                         tempOrderId,
                         items: orderItems,
@@ -159,10 +147,7 @@ function Checkout() {
                     <Link to="/cart">Giỏ hàng</Link>
                     <Link to="/orders">Đơn hàng</Link>
                     <Link to="/profile">Cá nhân</Link>
-                    <button onClick={() => {
-                        localStorage.removeItem('user');
-                        navigate('/login');
-                    }}>Đăng xuất</button>
+                    <button onClick={logout}>Đăng xuất</button> {/* DÙNG logout() */}
                 </div>
             </nav>
 
@@ -184,12 +169,7 @@ function Checkout() {
                                     <button
                                         onClick={async () => {
                                             try {
-                                                await axios.put(
-                                                    'http://localhost:5000/api/users/profile',
-                                                    form,
-                                                    // { headers: { 'user-id': user.userId } }
-                                                    { headers: { Authorization: `Bearer ${token}` } }
-                                                );
+                                                await api.put('/profile', form); // DÙNG api.js
                                                 setUserInfo(form);
                                                 setEditing(false);
                                             } catch (err) {
@@ -263,7 +243,7 @@ function Checkout() {
                         </p>
                     </div>
 
-                    {/* === NÚT HÀNH ĐỘNG (CHỈ 1 LẦN) === */}
+                    {/* === NÚT HÀNH ĐỘNG === */}
                     <div className="checkout-actions">
                         <button
                             onClick={handlePlaceOrder}
