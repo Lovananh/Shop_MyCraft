@@ -7,6 +7,7 @@ const orderRoutes = require('./routes/orderRoutes');
 const userRoutes = require('./routes/userRoutes');
 const cartRoutes = require('./routes/cartRoutes');
 const authRoutes = require('./routes/authRoutes');
+const passwordRoutes = require('./routes/passwordRoutes');
 const uploadRoutes = require('./routes/uploadRoutes');
 const adminUserRoutes = require('./routes/adminUserRoutes');
 const path = require('path');
@@ -36,6 +37,7 @@ app.use('/api/orders', orderRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/cart', cartRoutes);
 app.use('/api/auth', authRoutes);
+app.use('/api/auth', passwordRoutes);
 app.use('/api/upload', uploadRoutes);
 app.use('/api/users', adminUserRoutes);
 app.use('/api/payment', paymentRoutes);
@@ -48,6 +50,22 @@ app.use('/api/admin/users', adminUserRoutes);
 // app.use('/api/upload', uploadRouter);
 
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
-    console.log(`Server đang chạy trên cổng ${PORT}`);
-});
+
+// Initialize mailer before starting the server so emails send immediately
+const mailer = require('./utils/mailer');
+
+async function start() {
+    try {
+        if (typeof mailer.init === 'function') {
+            await mailer.init();
+        }
+    } catch (e) {
+        console.error('Mailer init error:', e);
+    }
+
+    app.listen(PORT, () => {
+        console.log(`Server đang chạy trên cổng ${PORT}`);
+    });
+}
+
+start();

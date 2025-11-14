@@ -1,6 +1,6 @@
 // src/pages/Login.js
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import axios from 'axios';
 import { useAuth } from '../hooks/useAuth';
 
@@ -10,7 +10,20 @@ function Login() {
     const [error, setError] = useState(null);
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
+    const [searchParams] = useSearchParams();
     const { token, role } = useAuth();
+
+    useEffect(() => {
+        // Show success message if redirected from email verification
+        if (searchParams.get('verified') === 'true') {
+            setError(null);
+            // Show success message for 3 seconds
+            const timer = setTimeout(() => {
+                // Could be cleared or kept visible
+            }, 3000);
+            return () => clearTimeout(timer);
+        }
+    }, [searchParams]);
 
     useEffect(() => {
         if (token) {
@@ -61,6 +74,9 @@ function Login() {
     return (
         <div className="login-container">
             <h2>Đăng nhập</h2>
+            {searchParams.get('verified') === 'true' && (
+                <p style={{ color: 'green', fontWeight: 'bold' }}>✓ Email đã xác thực thành công. Bạn có thể đăng nhập ngay.</p>
+            )}
             {error && <p className="error">{error}</p>}
             {loading && <p>Đang xử lý...</p>}
 
@@ -93,6 +109,10 @@ function Login() {
                     {loading ? 'Đang đăng nhập...' : 'Đăng nhập'}
                 </button>
             </form>
+
+            <p className="forgot-link">
+                <Link to="/forgot-password">Quên mật khẩu?</Link>
+            </p>
 
             <p className="register-link">
                 Chưa có tài khoản? <a href="/register">Đăng ký ngay</a>

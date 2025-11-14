@@ -55,6 +55,30 @@ const userSchema = new mongoose.Schema({
         enum: ['user', 'admin'],
         default: 'user',
     },
+    // Email verification
+    isVerified: {
+        type: Boolean,
+        default: false,
+    },
+    verificationToken: {
+        type: String,
+    },
+    verificationCode: {
+        type: String,
+    },
+    verificationExpires: {
+        type: Date,
+    },
+    // Password reset fields
+    passwordResetToken: {
+        type: String,
+    },
+    passwordResetCode: {
+        type: String,
+    },
+    passwordResetExpires: {
+        type: Date,
+    },
     createdAt: {
         type: Date,
         default: Date.now,
