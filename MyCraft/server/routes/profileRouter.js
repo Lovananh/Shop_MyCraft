@@ -5,7 +5,7 @@ const User = require('../models/User');
 const verifyToken = require('../middleware/verifyToken');
 const upload = require('../middleware/upload');
 
-// === LẤY PROFILE ===
+//lẤY PROFILE
 router.get('/', verifyToken, async (req, res) => {
     try {
         const user = await User.findById(req.user.userId).select('-password');
@@ -27,11 +27,10 @@ router.get('/', verifyToken, async (req, res) => {
     }
 });
 
-// === CẬP NHẬT PROFILE ===
+//CẬP NHẬT PROFILe
 router.put('/', verifyToken, async (req, res) => {
     const { name, address, phone, email } = req.body;
 
-    // Validation
     if (name !== undefined && !/^[a-zA-ZÀ-ỹ\s]{2,100}$/.test(name)) {
         return res.status(400).json({ message: 'Tên không hợp lệ' });
     }

@@ -27,16 +27,16 @@ function Register() {
         setLoading(true);
         setError(null);
 
-        // === VALIDATION ===
-        if (!/^[a-z0-9.]{3,50}$/.test(formData.username)) {
-            setError('Tên đăng nhập: 3-50 ký tự, chỉ a-z, 0-9, dấu chấm');
+        // validate
+        if (!/^[a-z0-9.]{6,50}$/.test(formData.username)) {
+            setError('Tên đăng nhập: 6-50 ký tự, chỉ a-z, 0-9, dấu chấm');
             setLoading(false);
             return;
         }
 
         const passwordRegex = /^(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+=\-[\]{};':"\\|,.<>/?]).{8,}$/;
         if (!passwordRegex.test(formData.password)) {
-            setError('Mật khẩu: ≥8 ký tự, có chữ hoa, số, ký tự đặc biệt');
+            setError('Mật khẩu: ít nhất 8 ký tự, có chữ hoa, số, ký tự đặc biệt');
             setLoading(false);
             return;
         }
@@ -61,7 +61,6 @@ function Register() {
         }
 
         try {
-            // BƯỚC 1: ĐĂNG KÝ
             const regRes = await axios.post('http://localhost:5000/api/auth/register', {
                 ...formData,
                 role: 'user',
@@ -69,10 +68,27 @@ function Register() {
 
             console.log('Register response:', regRes.data);
 
+<<<<<<< Updated upstream
             // Sau khi đăng ký, backend đã gửi email xác thực; không tự động đăng nhập
             // Hiển thị thông báo và chuyển về trang đăng nhập
             alert(regRes.data.message || 'Đăng ký thành công. Vui lòng kiểm tra email để xác nhận.');
             navigate('/login');
+=======
+            // tự đăng nhập
+            const loginRes = await axios.post('http://localhost:5000/api/auth/login', {
+                username: formData.username,
+                password: formData.password,
+            });
+
+            const { token, role } = loginRes.data;
+            const userId = regRes.data._id;
+
+            const userData = { token, userId, role };
+            localStorage.setItem('user', JSON.stringify(userData));
+            console.log('ĐÃ LƯU USER SAU ĐĂNG KÝ + ĐĂNG NHẬP:', userData);
+
+            navigate('/');
+>>>>>>> Stashed changes
         } catch (err) {
             console.error('Lỗi đăng ký:', err.response?.data);
             const msg = err.response?.data?.message || 'Lỗi khi đăng ký';

@@ -1,4 +1,3 @@
-// src/pages/Login.js
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import axios from 'axios';
@@ -55,7 +54,7 @@ function Login() {
                 throw new Error('Server không trả về token hoặc role');
             }
 
-            // LƯU CHỈ token + role
+            // luu token với role
             const userData = { token, role };
             localStorage.setItem('user', JSON.stringify(userData));
             console.log('ĐÃ LƯU USER VÀO localStorage:', userData);

@@ -1,5 +1,3 @@
-// server/routes/paymentRoutes.js
-
 const express = require('express');
 const router = express.Router();
 const PayOS = require('@payos/node');
@@ -15,7 +13,7 @@ const verifyToken = require('../middleware/verifyToken');
 //     process.env.PAYOS_CHECKSUM_KEY
 // );
 
-// === TẠO LINK THANH TOÁN QR ===
+// tạo link thanh toán qr
 router.post('/create-qr', verifyToken, async (req, res) => {
     const { orderId } = req.body;
     // const userId = req.headers['user-id'];
@@ -69,7 +67,7 @@ router.post('/create-qr', verifyToken, async (req, res) => {
     }
 });
 
-// === TẠO LINK QR TẠM (CHƯA TẠO ĐƠN) ===
+// chưa tạo đơn
 router.post('/create-qr-temp', verifyToken, async (req, res) => {
     const { tempOrderId, items, name, phone, address, total } = req.body;
     // const userId = req.headers['user-id'];
@@ -108,7 +106,7 @@ router.post('/create-qr-temp', verifyToken, async (req, res) => {
     }
 });
 
-// === WEBHOOK ===
+// web hook 
 router.post('/webhook', async (req, res) => {
     try {
         const payOS = new PayOS(

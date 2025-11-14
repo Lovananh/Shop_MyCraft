@@ -1,7 +1,6 @@
-// src/pages/Checkout.js – HOÀN CHỈNH 100%
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
-import api from '../utils/api'; // DÙNG api.js ĐỂ GỬI TOKEN TỰ ĐỘNG
+import api from '../utils/api';
 import { useAuth } from '../hooks/useAuth';
 
 function Checkout() {
@@ -19,7 +18,7 @@ function Checkout() {
     const selectedItems = location.state?.selectedItems || [];
 
     useEffect(() => {
-        if (token === null) return; // Chưa load xong → không làm gì
+        if (token === null) return;// Chưa load xong
         if (!token) {
             navigate('/login', { state: { message: 'Vui lòng đăng nhập để thanh toán' } });
             return;
@@ -89,7 +88,7 @@ function Checkout() {
         setError(null);
 
         try {
-            // === COD: TẠO ĐƠN NGAY ===
+            // === COD: tạo đơn ngay
             if (paymentMethod === 'cod') {
                 const orderRes = await api.post('/orders', {
                     items: orderItems,
@@ -104,7 +103,7 @@ function Checkout() {
                 return;
             }
 
-            // === QR: TẠO LINK THANH TOÁN ===
+            // qr tạo link thanh toán
             if (paymentMethod === 'qr') {
                 const tempOrderId = `TEMP_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
 

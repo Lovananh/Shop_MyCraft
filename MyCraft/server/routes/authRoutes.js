@@ -12,8 +12,8 @@ router.post('/register', async (req, res) => {
         if (!username || !password || !name || !email) {
             return res.status(400).json({ message: 'Tên đăng nhập, mật khẩu, tên và email là bắt buộc' });
         }
-        if (username.length < 3 || username.length > 50) {
-            return res.status(400).json({ message: 'Tên đăng nhập phải từ 3 đến 50 ký tự' });
+        if (username.length < 6 || username.length > 50) {
+            return res.status(400).json({ message: 'Tên đăng nhập phải từ 6 đến 50 ký tự' });
         }
         const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&]).{8,}$/;
         if (!passwordRegex.test(password)) {
