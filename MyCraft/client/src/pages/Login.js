@@ -1,6 +1,6 @@
 // src/pages/Login.js
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import axios from 'axios';
 import { useAuth } from '../hooks/useAuth';
 
@@ -109,6 +109,10 @@ function Login() {
                     {loading ? 'Đang đăng nhập...' : 'Đăng nhập'}
                 </button>
             </form>
+
+            <p className="forgot-link">
+                <Link to="/forgot-password">Quên mật khẩu?</Link>
+            </p>
 
             <p className="register-link">
                 Chưa có tài khoản? <a href="/register">Đăng ký ngay</a>
