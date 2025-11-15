@@ -44,7 +44,7 @@ button,
     display: inline-block;
 }
 
-.submit-button {
+.submit-button.submit-button-admin {
     max-width: 150px;
 }
 

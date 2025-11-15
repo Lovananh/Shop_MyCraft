@@ -1,7 +1,7 @@
-// src/pages/Home.js
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import api from '../utils/api'; // ← DÙNG api
+import api from '../utils/api';
 import { useAuth } from '../hooks/useAuth';
 
 function Home() {

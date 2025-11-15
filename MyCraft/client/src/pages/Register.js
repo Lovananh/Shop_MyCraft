@@ -68,23 +68,11 @@ function Register() {
 
             console.log('Register response:', regRes.data);
 
-            // lovananh
+            // Sau khi đăng ký, backend đã gửi email xác thực; không tự động đăng nhập
+            // Hiển thị thông báo và chuyển về trang đăng nhập
             alert(regRes.data.message || 'Đăng ký thành công. Vui lòng kiểm tra email để xác nhận.');
             navigate('/login');
-            // // tự đăng nhập
-            // const loginRes = await axios.post('http://localhost:5000/api/auth/login', {
-            //     username: formData.username,
-            //     password: formData.password,
-            // });
 
-            // const { token, role } = loginRes.data;
-            // const userId = regRes.data._id;
-
-            // const userData = { token, userId, role };
-            // localStorage.setItem('user', JSON.stringify(userData));
-            // console.log('ĐÃ LƯU USER SAU ĐĂNG KÝ + ĐĂNG NHẬP:', userData);
-
-            // navigate('/');
         } catch (err) {
             console.error('Lỗi đăng ký:', err.response?.data);
             const msg = err.response?.data?.message || 'Lỗi khi đăng ký';
