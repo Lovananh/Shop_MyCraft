@@ -60,12 +60,12 @@ router.post('/register', async (req, res) => {
 
         // send verification email (best-effort)
         try {
-                        // Prefer sending user to client verification page; also include a short numeric code in email
-                        const serverBase = process.env.BASE_URL || `http://localhost:${process.env.PORT || 5000}`;
-                        const verifyPath = `/api/auth/verify?token=${verificationToken}&email=${encodeURIComponent(user.email)}`;
-                        const verifyUrl = `${serverBase}${verifyPath}`;
+            // Prefer sending user to client verification page; also include a short numeric code in email
+            const serverBase = process.env.BASE_URL || `http://localhost:${process.env.PORT || 5000}`;
+            const verifyPath = `/api/auth/verify?token=${verificationToken}&email=${encodeURIComponent(user.email)}`;
+            const verifyUrl = `${serverBase}${verifyPath}`;
 
-                        const html = `
+            const html = `
                             <div style="font-family: Arial, sans-serif; line-height:1.6; color:#111">
                                 <h2>Xin chào ${user.name},</h2>
                                 <p>Cảm ơn bạn đã đăng ký tài khoản trên MyCraft.</p>
@@ -79,9 +79,9 @@ router.post('/register', async (req, res) => {
                             </div>
                         `;
 
-                        const text = `Xin chao ${user.name}\n\nMã xác thực: ${verificationCode}\n\nMở link để xác thực: ${verifyUrl}\n\nLiên kết hợp lệ trong 24 giờ.`;
+            const text = `Xin chao ${user.name}\n\nMã xác thực: ${verificationCode}\n\nMở link để xác thực: ${verifyUrl}\n\nLiên kết hợp lệ trong 24 giờ.`;
 
-                        await sendEmail({ to: user.email, subject: 'Xác nhận email - MyCraft', html, text });
+            await sendEmail({ to: user.email, subject: 'Xác nhận email - MyCraft', html, text });
         } catch (mailErr) {
             console.error('Không gửi được email xác nhận:', mailErr);
         }
@@ -183,10 +183,10 @@ router.post('/resend-verification', async (req, res) => {
         await user.save();
 
         try {
-                        const serverBase = process.env.BASE_URL || `http://localhost:${process.env.PORT || 5000}`;
-                        const verifyPath = `/api/auth/verify?token=${verificationToken}&email=${encodeURIComponent(user.email)}`;
-                        const verifyUrl = `${serverBase}${verifyPath}`;
-                        const html = `
+            const serverBase = process.env.BASE_URL || `http://localhost:${process.env.PORT || 5000}`;
+            const verifyPath = `/api/auth/verify?token=${verificationToken}&email=${encodeURIComponent(user.email)}`;
+            const verifyUrl = `${serverBase}${verifyPath}`;
+            const html = `
                             <div style="font-family: Arial, sans-serif; line-height:1.6; color:#111">
                                 <h2>Xin chào ${user.name},</h2>
                                 <p>Mã xác thực: <strong style="font-size:20px">${user.verificationCode}</strong></p>
@@ -197,8 +197,8 @@ router.post('/resend-verification', async (req, res) => {
                                 <p>Liên kết và mã hợp lệ trong 24 giờ.</p>
                             </div>
                         `;
-                        const text = `Mã xác thực: ${user.verificationCode}\n\nMở link để xác thực: ${verifyUrl}`;
-                        await sendEmail({ to: user.email, subject: 'Xác nhận email - MyCraft', html, text });
+            const text = `Mã xác thực: ${user.verificationCode}\n\nMở link để xác thực: ${verifyUrl}`;
+            await sendEmail({ to: user.email, subject: 'Xác nhận email - MyCraft', html, text });
         } catch (mailErr) {
             console.error('Không gửi được email xác nhận:', mailErr);
         }

@@ -44,6 +44,10 @@ button,
     display: inline-block;
 }
 
+.submit-button {
+    max-width: 150px;
+}
+
 button:hover,
 .navbar a:hover,
 .submit-button:hover,
