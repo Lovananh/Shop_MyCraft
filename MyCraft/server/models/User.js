@@ -60,6 +60,10 @@ const userSchema = new mongoose.Schema({
         type: Boolean,
         default: false,
     },
+    createdByAdmin: {
+        type: Boolean,
+        default: false, // mặc định là user tự đăng ký
+    },
     verificationToken: {
         type: String,
     },
