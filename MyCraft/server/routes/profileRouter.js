@@ -4,8 +4,9 @@ const router = express.Router();
 const User = require('../models/User');
 const verifyToken = require('../middleware/verifyToken');
 const upload = require('../middleware/upload');
+const bcrypt = require('bcrypt');
 
-//lẤY PROFILE
+// LẤY PROFILE
 router.get('/', verifyToken, async (req, res) => {
     try {
         const user = await User.findById(req.user.userId).select('-password');
@@ -27,7 +28,7 @@ router.get('/', verifyToken, async (req, res) => {
     }
 });
 
-//CẬP NHẬT PROFILe
+// CẬP NHẬT PROFILE
 router.put('/', verifyToken, async (req, res) => {
     const { name, address, phone, email } = req.body;
 
@@ -45,7 +46,6 @@ router.put('/', verifyToken, async (req, res) => {
         if (phone !== undefined) updates.phone = phone;
         if (email !== undefined) updates.email = email;
 
-        // Nếu đổi email, kiểm tra định dạng và unique
         if (email !== undefined) {
             const emailRegex = /^\S+@\S+\.\S+$/;
             if (!emailRegex.test(email)) return res.status(400).json({ message: 'Email không hợp lệ' });
@@ -79,7 +79,7 @@ router.put('/', verifyToken, async (req, res) => {
     }
 });
 
-// === UPLOAD AVATAR ===
+// UPLOAD AVATAR
 router.post('/avatar', verifyToken, upload.single('avatar'), async (req, res) => {
     try {
         if (!req.file) return res.status(400).json({ message: 'Chưa chọn ảnh' });
@@ -97,6 +97,44 @@ router.post('/avatar', verifyToken, upload.single('avatar'), async (req, res) =>
     } catch (err) {
         console.error('Lỗi upload avatar:', err);
         res.status(500).json({ message: 'Lỗi upload ảnh' });
+    }
+});
+// ĐỔI MẬT KHẨU
+router.put('/password', verifyToken, async (req, res) => {
+    const { currentPassword, newPassword } = req.body;
+
+    if (!currentPassword || !newPassword) {
+        return res.status(400).json({ message: 'Vui lòng nhập đầy đủ mật khẩu' });
+    }
+
+    const passwordRegex = /^(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+=\-[\]{};':"\\|,.<>/?]).{8,}$/;
+    if (!passwordRegex.test(newPassword)) {
+        return res.status(400).json({
+            message: 'Mật khẩu mới: ít nhất 8 ký tự, có chữ hoa, số, ký tự đặc biệt'
+        });
+    }
+
+    try {
+        const user = await User.findById(req.user.userId);
+        if (!user) return res.status(404).json({ message: 'Không tìm thấy người dùng' });
+
+        // SO SÁNH MẬT KHẨU CŨ
+        const isMatch = await bcrypt.compare(currentPassword, user.password);
+        if (!isMatch) {
+            return res.status(400).json({
+                message: 'Mật khẩu hiện tại không đúng'
+            });
+        }
+
+        // MÃ HÓA MẬT KHẨU MỚI
+        const salt = await bcrypt.genSalt(10);
+        user.password = await bcrypt.hash(newPassword, salt);
+        await user.save();
+
+        res.json({ message: 'Đổi mật khẩu thành công' });
+    } catch (err) {
+        console.error('Lỗi đổi mật khẩu:', err);
+        res.status(500).json({ message: 'Lỗi server. Vui lòng thử lại sau.' });
     }
 });
 

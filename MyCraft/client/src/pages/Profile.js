@@ -4,14 +4,15 @@ import { useNavigate, Link } from 'react-router-dom';
 import api from '../utils/api';
 import '../assets/styles/profile.css';
 import { useAuth } from '../hooks/useAuth';
-import { 
-    FaUser, FaEnvelope, FaMobile, FaMapMarkerAlt, 
-    FaShoppingBag, FaKey, FaHeadset, FaEdit, 
-    FaMobileAlt} from 'react-icons/fa';
+import {
+    FaUser, FaEnvelope, FaMobile, FaMapMarkerAlt,
+    FaShoppingBag, FaKey, FaHeadset, FaEdit,
+    FaMobileAlt
+} from 'react-icons/fa';
 
 function Profile() {
     const [userInfo, setUserInfo] = useState({
-        username: '', name: '', email: '', address: '', phone: '', 
+        username: '', name: '', email: '', address: '', phone: '',
         avatar: 'https://place.dog/100/100', // fallback
     });
     const [isEditing, setIsEditing] = useState(false);
@@ -23,14 +24,31 @@ function Profile() {
     const navigate = useNavigate();
     const { token, logout } = useAuth();
 
+    // useEffect(() => {
+    //     if (token === null) return;
+    //     if (!token) {
+    //         navigate('/login', { state: { message: 'Vui lòng đăng nhập' } });
+    //         return;
+    //     }
+    //     fetchUserProfile();
+    // }, [token, navigate]);
+
     useEffect(() => {
-        if (token === null) return;
+        // ĐẢM BẢO TOKEN CÓ TRƯỚC KHI GỌI
         if (!token) {
-            navigate('/login', { state: { message: 'Vui lòng đăng nhập' } });
-            return;
+            const checkToken = setInterval(() => {
+                const stored = localStorage.getItem('user');
+                if (stored) {
+                    clearInterval(checkToken);
+                    fetchUserProfile();
+                }
+            }, 100);
+
+            return () => clearInterval(checkToken);
         }
+
         fetchUserProfile();
-    }, [token, navigate]);
+    }, [token]);
 
     const fetchUserProfile = async () => {
         setLoading(true);
