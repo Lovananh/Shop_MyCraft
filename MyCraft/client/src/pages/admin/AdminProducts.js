@@ -123,7 +123,7 @@ function AdminProducts() {
                     <div className="form-group"><label>URL hình ảnh:</label><input type="text" value={formData.imageUrl} onChange={e => setFormData(prev => ({ ...prev, imageUrl: e.target.value }))} /></div>
                     <div className="form-group"><label>Tải lên hình ảnh:</label><input type="file" accept="image/*" onChange={e => setImageFile(e.target.files[0])} /></div>
                     <div className="form-buttons">
-                        <button type="submit" disabled={loading} className="submit-button">{loading ? 'Đang xử lý...' : editProductId ? 'Cập nhật' : 'Thêm'}</button>
+                        <button type="submit" disabled={loading} className="submit-button submit-button-admin">{loading ? 'Đang xử lý...' : editProductId ? 'Cập nhật' : 'Thêm'}</button>
                         {editProductId && <button type="button" onClick={() => { setEditProductId(null); setFormData({ name: '', description: '', price: '', stock: '', imageUrl: '' }); setImageFile(null); }} className="cancel-button">Hủy</button>}
                     </div>
                 </form>

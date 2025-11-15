@@ -139,7 +139,7 @@ function AdminUsers() {
                         </select>
                     </div>
                     <div className="form-buttons">
-                        <button type="submit" disabled={loading} className="submit-button">{loading ? 'Đang xử lý...' : editUserId ? 'Cập nhật' : 'Thêm'}</button>
+                        <button type="submit" disabled={loading} className="submit-button submit-button-admin">{loading ? 'Đang xử lý...' : editUserId ? 'Cập nhật' : 'Thêm'}</button>
                         {editUserId && <button type="button" onClick={() => { setEditUserId(null); setFormData({ username: '', name: '', email: '', phone: '', address: '', role: 'user', password: '' }); }} className="cancel-button">Hủy</button>}
                     </div>
                 </form>
