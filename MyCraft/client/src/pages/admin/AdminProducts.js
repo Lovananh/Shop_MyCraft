@@ -17,6 +17,16 @@ function AdminProducts() {
     const navigate = useNavigate();
     const { token, role } = useAuth();
 
+    // tự động xóa thông báo
+    // useEffect(() => {
+    //     if (error) {
+    //         const timer = setTimeout(() => {
+    //             setError(null);
+    //         }, 3000);
+    //         return () => clearTimeout(timer);
+    //     }
+    // }, [error]);
+
     const fetchProducts = useCallback(async () => {
         if (!token || role !== 'admin') return;
         setLoading(true);
@@ -57,6 +67,7 @@ function AdminProducts() {
             setProducts(prev => [...prev, res.data]);
             setFormData({ name: '', description: '', price: '', stock: '', imageUrl: '' });
             setImageFile(null);
+            setError(null);
         } catch (err) {
             setError(err.response?.data?.message || 'Lỗi khi thêm');
         } finally { setLoading(false); }
@@ -66,6 +77,7 @@ function AdminProducts() {
         setEditProductId(product._id);
         setFormData({ name: product.name, description: product.description, price: product.price.toString(), stock: product.stock.toString(), imageUrl: product.imageUrl });
         setImageFile(null);
+        setError(null);
     };
 
     const handleUpdateProduct = async (e) => {
@@ -83,6 +95,7 @@ function AdminProducts() {
             setProducts(prev => prev.map(p => p._id === editProductId ? res.data : p));
             setEditProductId(null); setFormData({ name: '', description: '', price: '', stock: '', imageUrl: '' }); setImageFile(null);
             alert('Cập nhật thành công!');
+            setError(null);// đảm bảo lỗi đã xóa 
         } catch (err) {
             setError(err.response?.data?.message || 'Lỗi khi cập nhật');
         } finally { setLoading(false); }
