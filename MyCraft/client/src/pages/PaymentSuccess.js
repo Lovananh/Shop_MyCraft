@@ -1,4 +1,4 @@
-// src/pages/PaymentSuccess.js – HOÀN CHỈNH 100%
+// src/pages/PaymentSuccess.js
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../utils/api';

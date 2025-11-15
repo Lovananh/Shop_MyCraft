@@ -13,7 +13,7 @@ const adminUserRoutes = require('./routes/adminUserRoutes');
 const path = require('path');
 const paymentRoutes = require('./routes/paymentRoutes');
 const profileRouter = require('./routes/profileRouter');
-
+// const autoComplete = require('./cron/autoComplete');
 dotenv.config();
 const app = express();
 
@@ -43,8 +43,7 @@ app.use('/api/users', adminUserRoutes);
 app.use('/api/payment', paymentRoutes);
 app.use('/api/profile', profileRouter);
 
-app.use('/api/admin/users', adminUserRoutes);
-
+require('./cron/autoComplete');
 //demo web an toan
 // const uploadRouter = require('./routes/upload');
 // app.use('/api/upload', uploadRouter);
