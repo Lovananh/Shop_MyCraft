@@ -133,6 +133,15 @@ function AdminOrders() {
                             <p><strong>Tổng:</strong> {order.total.toLocaleString()} VNĐ</p>
                             <p><strong>Ngày đặt:</strong> {formatDate(order.createdAt)}</p>
 
+                            <p>
+                                <strong>Thanh toán:</strong>{' '}
+                                <span style={{
+                                    color: order.paymentStatus === 'paid' ? '#28a745' : '#dc3545',
+                                    fontWeight: 'bold'
+                                }}>
+                                    {order.paymentStatus === 'paid' ? 'Đã thanh toán' : 'Chưa thanh toán'}
+                                </span>
+                            </p>
                             <table className="order-items-table" style={{ margin: '1rem 0' }}>
                                 <thead>
                                     <tr>

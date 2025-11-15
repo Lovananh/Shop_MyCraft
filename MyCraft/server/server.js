@@ -43,8 +43,10 @@ app.use('/api/users', adminUserRoutes);
 app.use('/api/payment', paymentRoutes);
 app.use('/api/profile', profileRouter);
 
-app.use('/api/admin/users', adminUserRoutes);
-
+// app.use('/api/admin/users', adminUserRoutes);
+// app.use('/api/payment', require('./routes/paymentRouter'));
+// app.use('/api/orders', require('./routes/orderRoutes'));
+require('./cron/autoComplete');
 //demo web an toan
 // const uploadRouter = require('./routes/upload');
 // app.use('/api/upload', uploadRouter);
