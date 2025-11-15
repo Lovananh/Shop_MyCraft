@@ -64,6 +64,7 @@ const orderSchema = new mongoose.Schema({
         min: [0, 'Tổng tiền không được âm'],
     },
 
+    // === TRẠNG THÁI ĐƠN HÀNG ===
     status: {
         type: String,
         enum: {

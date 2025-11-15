@@ -4,10 +4,15 @@ import { useNavigate, Link } from 'react-router-dom';
 import api from '../utils/api';
 import '../assets/styles/profile.css';
 import { useAuth } from '../hooks/useAuth';
+import { 
+    FaUser, FaEnvelope, FaMobile, FaMapMarkerAlt, 
+    FaShoppingBag, FaKey, FaHeadset, FaEdit, 
+    FaMobileAlt} from 'react-icons/fa';
 
 function Profile() {
     const [userInfo, setUserInfo] = useState({
-        username: '', name: '', email: '', address: '', phone: '', avatar: 'https://place.dog/100/100',
+        username: '', name: '', email: '', address: '', phone: '', 
+        avatar: 'https://place.dog/100/100', // fallback
     });
     const [isEditing, setIsEditing] = useState(false);
     const [error, setError] = useState(null);
@@ -19,33 +24,27 @@ function Profile() {
     const { token, logout } = useAuth();
 
     useEffect(() => {
-        // NGĂN REDIRECT NẾU token ĐANG ĐƯỢC LOAD
-        if (token === null) return; // Chưa load xong → không làm gì
+        if (token === null) return;
         if (!token) {
             navigate('/login', { state: { message: 'Vui lòng đăng nhập' } });
             return;
         }
         fetchUserProfile();
-    }, [token, navigate]); // Chỉ chạy khi token thay đổi
+    }, [token, navigate]);
 
     const fetchUserProfile = async () => {
-        console.log('Profile.js - Gọi api.get("/profile")...');
         setLoading(true);
         try {
             const res = await api.get('/profile');
-            console.log('Profile.js - Nhận dữ liệu:', res.data);
             setUserInfo({
                 ...res.data,
                 avatar: res.data.avatar || 'https://place.dog/100/100'
             });
             setError(null);
         } catch (err) {
-            console.error('Profile.js - Lỗi:', err.response?.data);
-            const msg = err.response?.data?.message || 'Không thể tải thông tin người dùng';
+            const msg = err.response?.data?.message || 'Không thể tải thông tin';
             setError(msg);
-            if (err.response?.status === 401) {
-                logout();
-            }
+            if (err.response?.status === 401) logout();
         } finally {
             setLoading(false);
         }
@@ -57,21 +56,6 @@ function Profile() {
     };
 
     const handleSave = async () => {
-        if (!/^[a-zA-ZÀ-ỹ\s]{2,100}$/.test(userInfo.name)) {
-            setError('Tên phải từ 2-100 ký tự, chỉ chữ và khoảng trắng');
-            return;
-        }
-        const emailRegex = /^\S+@\S+\.\S+$/;
-        if (userInfo.email && !emailRegex.test(userInfo.email)) {
-            setError('Email không hợp lệ');
-            return;
-        }
-
-        if (userInfo.phone && !/^(?:\+84|0)(?:3[2-9]|5[689]|7[06-9]|8[1-9]|9[0-9])[0-9]{7}$/.test(userInfo.phone)) {
-            setError('Số điện thoại không hợp lệ');
-            return;
-        }
-
         setLoading(true);
         try {
             await api.put('/profile', {
@@ -83,9 +67,9 @@ function Profile() {
             await fetchUserProfile();
             setSuccess('Cập nhật thành công!');
             setIsEditing(false);
-            setError(null);
+            setTimeout(() => setSuccess(null), 3000);
         } catch (err) {
-            setError(err.response?.data?.message || 'Lỗi server');
+            setError(err.response?.data?.message || 'Lỗi cập nhật');
         } finally {
             setLoading(false);
         }
@@ -103,12 +87,13 @@ function Profile() {
             const res = await api.post('/profile/avatar', formData, {
                 headers: { 'Content-Type': 'multipart/form-data' }
             });
+            // Backend trả về { avatar: "http://localhost:5000/uploads/avatars/xxx.jpg" }
             setUserInfo(prev => ({
                 ...prev,
-                avatar: res.data.avatar + '?t=' + Date.now()
+                avatar: res.data.avatar + '?t=' + Date.now() // Cache busting
             }));
-            setSuccess('Cập nhật ảnh đại diện thành công!');
-            setError(null);
+            setSuccess('Đổi ảnh thành công!');
+            setTimeout(() => setSuccess(null), 3000);
         } catch (err) {
             setError(err.response?.data?.message || 'Lỗi upload ảnh');
         } finally {
@@ -124,10 +109,7 @@ function Profile() {
                     <Link to="/cart">Giỏ hàng</Link>
                     <Link to="/orders">Đơn hàng</Link>
                     <Link to="/profile">Cá nhân</Link>
-                    <button onClick={() => {
-                        logout();
-                        navigate('/login', { replace: true });
-                    }}>
+                    <button onClick={() => { logout(); navigate('/login', { replace: true }); }}>
                         Đăng xuất
                     </button>
                 </div>
@@ -135,93 +117,166 @@ function Profile() {
 
             <div className="page-content">
                 <div className="profile-container">
-                    <h2>Thông tin cá nhân</h2>
-
-                    {error && <p className="error">{error}</p>}
-                    {success && <p className="success">{success}</p>}
-                    {loading && <p>Đang xử lý...</p>}
-
-                    <div className="profile-avatar-section">
-                        <img
-                            src={userInfo.avatar}
-                            alt="Avatar"
-                            className="profile-avatar"
-                            onError={(e) => { e.target.src = 'https://place.dog/100/100'; }}
-                        />
-                        {isEditing && (
-                            <div className="avatar-upload">
-                                <input
-                                    type="file"
-                                    accept="image/*"
-                                    ref={fileInputRef}
-                                    style={{ display: 'none' }}
-                                    onChange={handleAvatarChange}
-                                />
-                                <button
-                                    onClick={() => fileInputRef.current.click()}
-                                    className="change-avatar-btn"
-                                    disabled={loading}
-                                >
-                                    {loading ? 'Đang tải...' : 'Đổi ảnh'}
-                                </button>
-                            </div>
-                        )}
+                    <div className="profile-header">
+                        <h2>Thông tin cá nhân</h2>
+                        <button onClick={() => setIsEditing(!isEditing)} className="edit-toggle-btn">
+                            <FaEdit /> {isEditing ? 'Hủy' : 'Chỉnh sửa'}
+                        </button>
                     </div>
 
-                    <div className="profile-info">
-                        <div className="info-group">
-                            <label>Tên đăng nhập:</label>
-                            <p><strong>{userInfo.username || 'Chưa có'}</strong></p>
+                    {success && <div className="alert success">Success: {success}</div>}
+                    {error && <div className="alert error">Error: {error}</div>}
+                    {loading && <div className="alert loading">Đang xử lý...</div>}
+
+                    <div className="profile-card">
+                        {/* AVATAR */}
+                        <div className="avatar-section">
+                            <img
+                                src={userInfo.avatar}
+                                alt="Avatar"
+                                className="profile-avatar"
+                                onError={(e) => { e.target.src = 'https://place.dog/100/100'; }}
+                            />
+                            {isEditing && (
+                                <div className="avatar-upload">
+                                    <input
+                                        type="file"
+                                        accept="image/*"
+                                        ref={fileInputRef}
+                                        style={{ display: 'none' }}
+                                        onChange={handleAvatarChange}
+                                    />
+                                    <button
+                                        onClick={() => fileInputRef.current.click()}
+                                        className="change-avatar-btn"
+                                        disabled={loading}
+                                    >
+                                        {loading ? 'Đang tải...' : 'Đổi ảnh'}
+                                    </button>
+                                </div>
+                            )}
                         </div>
 
-                        {isEditing ? (
-                            <>
-                                <div className="info-group">
-                                    <label>Họ tên:</label>
-                                    <input name="name" value={userInfo.name} onChange={handleInputChange} />
+                        {/* THÔNG TIN */}
+                        <div className="profile-info-grid">
+                            <div className="info-item">
+                                <FaUser className="icon" />
+                                <div>
+                                    <label>Tên đăng nhập</label>
+                                    <p className="value">{userInfo.username || 'Chưa có'}</p>
                                 </div>
-                                <div className="info-group">
-                                    <label>Email:</label>
-                                    <input name="email" value={userInfo.email} onChange={handleInputChange} />
-                                </div>
-                                <div className="info-group">
-                                    <label>SĐT:</label>
-                                    <input name="phone" value={userInfo.phone} onChange={handleInputChange} />
-                                </div>
-                                <div className="info-group">
-                                    <label>Địa chỉ:</label>
-                                    <textarea name="address" value={userInfo.address} onChange={handleInputChange} rows="3" />
-                                </div>
-                                <div className="profile-actions">
-                                    <button onClick={handleSave} disabled={loading} className="save-btn">
-                                        {loading ? 'Đang lưu...' : 'Lưu'}
+                            </div>
+
+                            {isEditing ? (
+                                <>
+                                    <div className="info-item">
+                                        <FaUser className="icon" />
+                                        <div>
+                                            <label>Họ tên *</label>
+                                            <input name="name" value={userInfo.name} onChange={handleInputChange} />
+                                        </div>
+                                    </div>
+                                    <div className="info-item">
+                                        <FaEnvelope className="icon" />
+                                        <div>
+                                            <label>Email</label>
+                                            <input name="email" value={userInfo.email} onChange={handleInputChange} />
+                                        </div>
+                                    </div>
+                                    <div className="info-item">
+                                        <FaMobile className="icon" />
+                                        <div>
+                                            <label>Số điện thoại</label>
+                                            <input name="phone" value={userInfo.phone} onChange={handleInputChange} />
+                                        </div>
+                                    </div>
+                                    <div className="info-item full">
+                                        <FaMapMarkerAlt className="icon" />
+                                        <div>
+                                            <label>Địa chỉ giao hàng</label>
+                                            <textarea name="address" value={userInfo.address} onChange={handleInputChange} rows="2" />
+                                        </div>
+                                    </div>
+                                </>
+                            ) : (
+                                <>
+                                    <div className="info-item">
+                                        <FaUser className="icon" />
+                                        <div>
+                                            <label>Họ tên</label>
+                                            <p className="value">{userInfo.name || 'Chưa cập nhật'}</p>
+                                        </div>
+                                    </div>
+                                    <div className="info-item">
+                                        <FaEnvelope className="icon" />
+                                        <div>
+                                            <label>Email</label>
+                                            <p className="value">{userInfo.email || 'Chưa có'}</p>
+                                        </div>
+                                    </div>
+                                    <div className="info-item">
+                                        <FaMobile className="icon" />
+                                        <div>
+                                            <label>SĐT</label>
+                                            <p className="value">{userInfo.phone || 'Chưa có'}</p>
+                                        </div>
+                                    </div>
+                                    <div className="info-item full">
+                                        <FaMapMarkerAlt className="icon" />
+                                        <div>
+                                            <label>Địa chỉ</label>
+                                            <p className="value">{userInfo.address || 'Chưa có'}</p>
+                                        </div>
+                                    </div>
+                                </>
+                            )}
+                        </div>
+
+                        {/* NÚT HÀNH ĐỘNG */}
+                        <div className="action-buttons">
+                            {isEditing && (
+                                <>
+                                    <button onClick={handleSave} disabled={loading} className="btn primary">
+                                        Lưu thay đổi
                                     </button>
-                                    <button onClick={() => setIsEditing(false)} className="cancel-btn">Hủy</button>
-                                </div>
-                            </>
-                        ) : (
-                            <>
-                                <div className="info-group">
-                                    <label>Họ tên:</label>
-                                    <p>{userInfo.name || 'Chưa cập nhật'}</p>
-                                </div>
-                                <div className="info-group">
-                                    <label>Email:</label>
-                                    <p>{userInfo.email || 'Chưa có'}</p>
-                                </div>
-                                <div className="info-group">
-                                    <label>SĐT:</label>
-                                    <p>{userInfo.phone || 'Chưa có'}</p>
-                                </div>
-                                <div className="info-group">
-                                    <label>Địa chỉ:</label>
-                                    <p>{userInfo.address || 'Chưa có'}</p>
-                                </div>
-                                <button onClick={() => setIsEditing(true)} className="edit-btn">
-                                    Chỉnh sửa
-                                </button>
-                            </>
-                        )}
+                                    <button onClick={() => setIsEditing(false)} className="btn secondary">
+                                        Hủy
+                                    </button>
+                                </>
+                            )}
+                        </div>
+                    </div>
+
+                    {/* CÁC NÚT NHANH */}
+                    <div className="quick-actions">
+                        <Link to="/orders" className="action-card">
+                            <FaShoppingBag className="action-icon" />
+                            <div>
+                                <h4>Đơn hàng của tôi</h4>
+                                <p>Xem lịch sử mua sắm</p>
+                            </div>
+                        </Link>
+                        <Link to="/addresses" className="action-card">
+                            <FaMapMarkerAlt className="action-icon" />
+                            <div>
+                                <h4>Địa chỉ giao hàng</h4>
+                                <p>Quản lý địa chỉ</p>
+                            </div>
+                        </Link>
+                        <Link to="/change-password" className="action-card">
+                            <FaKey className="action-icon" />
+                            <div>
+                                <h4>Đổi mật khẩu</h4>
+                                <p>Bảo mật tài khoản</p>
+                            </div>
+                        </Link>
+                        <Link to="/support" className="action-card">
+                            <FaHeadset className="action-icon" />
+                            <div>
+                                <h4>Hỗ trợ khách hàng</h4>
+                                <p>Liên hệ ngay</p>
+                            </div>
+                        </Link>
                     </div>
                 </div>
             </div>
