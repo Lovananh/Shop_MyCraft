@@ -68,7 +68,6 @@ function Register() {
 
             console.log('Register response:', regRes.data);
 
-
             // Sau khi đăng ký, backend đã gửi email xác thực; không tự động đăng nhập
             // Hiển thị thông báo và chuyển về trang đăng nhập
             alert(regRes.data.message || 'Đăng ký thành công. Vui lòng kiểm tra email để xác nhận.');

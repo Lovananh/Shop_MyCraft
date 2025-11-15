@@ -43,9 +43,11 @@ button,
     transition: background 0.2s ease;
     display: inline-block;
 }
-.submit-button.submit-button-admin{
+
+.submit-button.submit-button-admin {
     max-width: 150px;
 }
+
 button:hover,
 .navbar a:hover,
 .submit-button:hover,

@@ -57,15 +57,14 @@ const orderSchema = new mongoose.Schema({
         required: [true, 'Địa chỉ giao hàng là bắt buộc'],
         trim: true,
     },
-    // ===========================================
-
+    ////////////////////////th tin
     total: {
         type: Number,
         required: [true, 'Tổng tiền là bắt buộc'],
         min: [0, 'Tổng tiền không được âm'],
     },
 
-    // === CẬP NHẬT: 5 TRẠNG THÁI MỚI ===
+    //cap nhat trang thai
     status: {
         type: String,
         enum: {
