@@ -107,7 +107,7 @@ router.post('/', verifyToken, async (req, res) => {
     }
 });
 
-// === [USER] LẤY ĐƠN HÀNG CỦA CHÍNH MÌNH ===
+// === user lấy đơn hàng của mình
 router.get('/', verifyToken, async (req, res) => {
     // const userId = req.headers['user-id'];
     const userId = req.user.userId;

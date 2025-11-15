@@ -26,7 +26,7 @@ function PaymentSuccess() {
 
             try {
                 const orderData = JSON.parse(pending);
-                localStorage.removeItem('pendingOrder'); // XÓA NGAY ĐỂ TRÁNH TẠO LẶP
+                localStorage.removeItem('pendingOrder');
 
                 const res = await api.post('/orders', {
                     items: orderData.items,

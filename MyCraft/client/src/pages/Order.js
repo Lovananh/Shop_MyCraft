@@ -1,4 +1,3 @@
-// src/pages/Order.js
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import api from '../utils/api';
@@ -16,7 +15,7 @@ function Order() {
     const { token, logout } = useAuth();
 
     useEffect(() => {
-        if (token === null) return; // Chưa load xong → không làm gì
+        if (token === null) return;
         if (!token) {
             navigate('/login');
             return;

@@ -1,3 +1,4 @@
+// src/pages/Login.js
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import axios from 'axios';
@@ -13,12 +14,9 @@ function Login() {
     const { token, role } = useAuth();
 
     useEffect(() => {
-        // Show success message if redirected from email verification
         if (searchParams.get('verified') === 'true') {
             setError(null);
-            // Show success message for 3 seconds
             const timer = setTimeout(() => {
-                // Could be cleared or kept visible
             }, 3000);
             return () => clearTimeout(timer);
         }
@@ -54,7 +52,7 @@ function Login() {
                 throw new Error('Server không trả về token hoặc role');
             }
 
-            // luu token với role
+            // Lưu token + role
             const userData = { token, role };
             localStorage.setItem('user', JSON.stringify(userData));
             console.log('ĐÃ LƯU USER VÀO localStorage:', userData);
@@ -63,8 +61,25 @@ function Login() {
 
         } catch (err) {
             console.error('LỖI ĐĂNG NHẬP:', err);
-            const message = err.response?.data?.message || err.message || 'Lỗi không xác định';
-            setError(message);
+            // const message = err.response?.data?.message || err.message || 'Lỗi không xác định';
+            // setError(message);
+            const res = err.response?.data;
+
+            if (res?.needsVerification) {
+                // CHỈ HIỆN THÔNG BÁO – KHÔNG CÓ NÚT
+                setError(
+                    <div style={{ color: '#d97706', textAlign: 'center', margin: '1rem 0' }}>
+                        <p style={{ fontWeight: 'bold', marginBottom: '0.5rem' }}>
+                            Vui lòng xác thực email trước khi đăng nhập.
+                        </p>
+                        <p style={{ fontSize: '0.9rem', color: '#666' }}>
+                            Kiểm tra hộp thư (kể cả mục Spam) để nhận link xác thực.
+                        </p>
+                    </div>
+                );
+            } else {
+                setError(res?.message || err.message || 'Lỗi không xác định');
+            }
         } finally {
             setLoading(false);
         }
