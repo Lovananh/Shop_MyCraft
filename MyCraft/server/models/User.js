@@ -8,7 +8,7 @@ const userSchema = new mongoose.Schema({
         unique: true,
         trim: true,
         match: [/^[a-z0-9.]+$/, 'Tên đăng nhập chỉ được chứa a-z, 0-9 và dấu chấm, không có dấu cách'],
-        minlength: [6, 'Tên đăng nhập phải có ít nhất 6 ký tự'],
+        // minlength: [6, 'Tên đăng nhập phải có ít nhất 6 ký tự'],
         maxlength: [50, 'Tên đăng nhập không được vượt quá 50 ký tự'],
     },
     password: {
