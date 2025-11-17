@@ -9,13 +9,13 @@ const router = express.Router();
 const upload = multer({
     storage: multer.memoryStorage(),
     limits: { fileSize: 2 * 1024 * 1024 }, // 2MB max
-    // fileFilter: (req, file, cb) => {
-    //     const allowedMimes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
-    //     if (!allowedMimes.includes(file.mimetype)) {
-    //         return cb(new Error('Chỉ cho phép ảnh: JPG, PNG, GIF, WebP'));
-    //     }
-    //     cb(null, true);
-    // }
+    fileFilter: (req, file, cb) => {
+        const allowedMimes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+        if (!allowedMimes.includes(file.mimetype)) {
+            return cb(new Error('Chỉ cho phép ảnh: JPG, PNG, GIF, WebP'));
+        }
+        cb(null, true);
+    }
 });
 
 // ktra magic bytes
@@ -26,7 +26,6 @@ function checkMagicBytes(buffer, ext) {
         'gif': Buffer.from([0x47, 0x49, 0x46, 0x38]),
         'webp': Buffer.from([0x52, 0x49, 0x46, 0x46])
     };
-
 
     const key = ext === 'jpeg' ? 'jpg' : ext;
     const expected = magic[key];
@@ -53,20 +52,20 @@ router.post('/', authenticateToken, upload.single('image'), async (req, res) => 
     if (!req.file) return res.status(400).json({ message: 'Không có file' });
 
     // CHUẨN HÓA ĐUÔI FILE & KIỂM TRA MAGIC BYTES
-    // const rawExt = path.extname(req.file.originalname).toLowerCase().slice(1);
-    // const ext = rawExt === 'jpeg' ? 'jpg' : rawExt;
+    const rawExt = path.extname(req.file.originalname).toLowerCase().slice(1);
+    const ext = rawExt === 'jpeg' ? 'jpg' : rawExt;
 
-    // if (!checkMagicBytes(req.file.buffer, ext)) {
-    //     return res.status(400).json({ message: 'File không hợp lệ (magic bytes sai)' });
-    // }
+    if (!checkMagicBytes(req.file.buffer, ext)) {
+        return res.status(400).json({ message: 'File không hợp lệ (magic bytes sai)' });
+    }
 
 
-    // const filename = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}.${ext}`;
-    // const filepath = path.join(__dirname, '../uploads', filename);
-
-    const ext = path.extname(req.file.originalname).toLowerCase().slice(1) || 'bin';
     const filename = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}.${ext}`;
     const filepath = path.join(__dirname, '../uploads', filename);
+
+    // const ext = path.extname(req.file.originalname).toLowerCase().slice(1) || 'bin';
+    // const filename = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}.${ext}`;
+    // const filepath = path.join(__dirname, '../uploads', filename);
 
     try {
         await fs.writeFile(filepath, req.file.buffer);
