@@ -1,12 +1,15 @@
 // src/utils/api.js
 import axios from 'axios';
 
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
+
 const api = axios.create({
-    baseURL: 'http://localhost:5000/api',
-    timeout: 10000,
+    baseURL: API_BASE_URL,
+    timeout: 15000,
+    // withCredentials: true, // bật nếu backend dùng cookie session (hiện tại bạn dùng JWT → không cần)
 });
 
-// INTERCEPTOR: TỰ ĐỘNG GỬI TOKEN
+// Interceptor: tự động gắn token
 api.interceptors.request.use(
     (config) => {
         const userData = localStorage.getItem('user');
@@ -15,10 +18,9 @@ api.interceptors.request.use(
                 const { token } = JSON.parse(userData);
                 if (token) {
                     config.headers.Authorization = `Bearer ${token}`;
-                    console.log('api.js - GỬI TOKEN:', token.substring(0, 20) + '...');
                 }
             } catch (err) {
-                console.error('Lỗi parse user:', err);
+                console.error('Lỗi parse user data:', err);
             }
         }
         return config;
@@ -26,7 +28,7 @@ api.interceptors.request.use(
     (error) => Promise.reject(error)
 );
 
-// INTERCEPTOR: XỬ LÝ 401
+// Interceptor: xử lý 401 → logout tự động
 api.interceptors.response.use(
     (response) => response,
     (error) => {
