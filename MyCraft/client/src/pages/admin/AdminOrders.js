@@ -18,25 +18,65 @@ function AdminOrders() {
     /* ==================================================================
        [ADMIN] LẤY TẤT CẢ ĐƠN HÀNG
        ================================================================== */
+    // const fetchOrders = useCallback(async () => {
+    //     if (!token || role !== 'admin') return;
+    //     setLoading(true);
+    //     setError(null);
+    //     try {
+    //         const res = await api.get('/orders/all');
+    //         const sortedOrders = (res.data || []).sort(
+    //             (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+    //         );
+    //         setOrders(sortedOrders);
+    //     } catch (err) {
+    //         const msg = err.response?.data?.message || 'Lỗi khi lấy đơn hàng';
+    //         setError(msg);
+    //         console.error('[ADMIN] Lỗi fetch orders:', err);
+    //     } finally {
+    //         setLoading(false);
+    //     }
+    // }, [token]);
+    // console.log('🔍 Imported api:', api);
     const fetchOrders = useCallback(async () => {
         if (!token || role !== 'admin') return;
         setLoading(true);
         setError(null);
         try {
+            console.log('🔄 [ADMIN] Đang gọi API:', `${api.defaults.baseURL}/orders/all`);
+
             const res = await api.get('/orders/all');
+
+            console.log('✅ [ADMIN] API response:', res);
+
             const sortedOrders = (res.data || []).sort(
                 (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
             );
             setOrders(sortedOrders);
         } catch (err) {
+            console.error('❌ [ADMIN] Lỗi fetch orders:', err);
+            console.log('🔍 Chi tiết lỗi:', {
+                message: err.message,
+                code: err.code,
+                status: err.response?.status,
+                statusText: err.response?.statusText,
+                data: err.response?.data
+            });
+
             const msg = err.response?.data?.message || 'Lỗi khi lấy đơn hàng';
             setError(msg);
-            console.error('[ADMIN] Lỗi fetch orders:', err);
+
+            // Hiển thị thông báo cụ thể
+            if (err.code === 'ERR_NETWORK') {
+                setError('Không thể kết nối đến server. Backend có thể đang tắt.');
+            } else if (err.response?.status === 404) {
+                setError('Endpoint /orders/all không tồn tại trên backend.');
+            } else if (err.response?.status === 500) {
+                setError('Lỗi server backend.');
+            }
         } finally {
             setLoading(false);
         }
-    }, [token]);
-
+    }, [token, role]);
 
     useEffect(() => {
         if (!token || role !== 'admin') {
@@ -53,7 +93,7 @@ function AdminOrders() {
         if (!window.confirm(`Cập nhật trạng thái thành "${statusText}"?`)) return;
 
         try {
-           const res = await api.put(`/orders/${orderId}/status`, { status: newStatus });
+            const res = await api.put(`/orders/${orderId}/status`, { status: newStatus });
 
             setOrders(prev => prev.map(o => o.orderId === orderId ? res.data : o));
             alert('Cập nhật thành công!');
