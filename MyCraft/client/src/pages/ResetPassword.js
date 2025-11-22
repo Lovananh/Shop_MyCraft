@@ -1,7 +1,8 @@
+// src/pages/ResetPassword.js
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
 import { useNavigate, useSearchParams, Link } from 'react-router-dom';
-import '../assets/styles/forgotpassword.css';
+import api from '../utils/api';
+import '../assets/styles/resetpassword.css';
 
 function ResetPassword() {
     const [searchParams] = useSearchParams();
@@ -9,52 +10,55 @@ function ResetPassword() {
     const [email, setEmail] = useState('');
     const [emailLocked, setEmailLocked] = useState(false);
     const [token, setToken] = useState('');
-    const [code, setCode] = useState('');
     const [newPassword, setNewPassword] = useState('');
     const [confirm, setConfirm] = useState('');
     const [error, setError] = useState(null);
-    const [message, setMessage] = useState(null);
+    const [success, setSuccess] = useState(null);
     const [loading, setLoading] = useState(false);
+
+    const passwordReset = /^(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+=\-[\]{};':"\\|,.<>/?]).{8,}$/;
 
     useEffect(() => {
         const qEmail = searchParams.get('email');
         const qToken = searchParams.get('token');
+
         if (qEmail) {
-            setEmail(qEmail);
+            setEmail(decodeURIComponent(qEmail));
             setEmailLocked(true);
         }
         if (qToken) setToken(qToken);
 
-        // Remove sensitive query params from the address bar (no reload)
         if (qEmail || qToken) {
-            try {
-                const pathname = window.location.pathname || '/reset-password';
-                // replace current entry with cleaned URL
-                navigate(pathname, { replace: true });
-            } catch (navErr) {
-                console.error('Error clearing reset query params', navErr);
-            }
+            const cleanPath = window.location.pathname;
+            navigate(cleanPath, { replace: true });
         }
-    }, [searchParams]);
+    }, [searchParams, navigate]);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError(null);
-        setMessage(null);
-        if (newPassword !== confirm) return setError('Mật khẩu mới và xác nhận không khớp');
+        setSuccess(null);
+
+        if (!email) return setError('Vui lòng nhập email');
+        if (!passwordReset.test(newPassword)) {
+            return setError('Mật khẩu: ít nhất 8 ký tự, có chữ hoa, số, ký tự đặc biệt');
+        }
+        if (newPassword !== confirm) {
+            return setError('Mật khẩu xác nhận không khớp');
+        }
+
         setLoading(true);
         try {
-            const payload = { email: email.trim(), newPassword };
-            if (token) payload.token = token;
-            if (code) payload.code = code.trim();
+            await api.post('/auth/reset-password', {
+                email: email.trim(),
+                token,
+                newPassword
+            });
 
-            const resp = await axios.post('http://localhost:5000/api/auth/reset-password', payload);
-            setMessage(resp.data?.message || 'Đã đặt lại mật khẩu');
-            // redirect to login after short delay
-            setTimeout(() => navigate('/login?reset=true', { replace: true }), 1500);
+            setSuccess('Đặt lại mật khẩu thành công! Đang chuyển về đăng nhập...');
+            setTimeout(() => navigate('/login?reset=success'), 2000);
         } catch (err) {
-            console.error('Reset error', err);
-            setError(err.response?.data?.message || err.message || 'Lỗi khi đặt lại mật khẩu');
+            setError(err.response?.data?.message || 'Lỗi đặt lại mật khẩu');
         } finally {
             setLoading(false);
         }
@@ -62,44 +66,60 @@ function ResetPassword() {
 
     return (
         <div className="auth-outer">
-            <div className="auth-card reset-card">
-                <h2>Đặt lại mật khẩu</h2>
-                <p>Nhập email và mã hoặc dùng liên kết từ email để đặt mật khẩu mới.</p>
+            <div className="auth-card">
+                <div className="card-header">
+                    <h2>Đặt lại mật khẩu</h2>
+                </div>
 
-                {message && <p className="success">{message}</p>}
-                {error && <p className="error">{error}</p>}
+                {success && <div className="alert success">Success: {success}</div>}
+                {error && <div className="alert error">Error: {error}</div>}
 
-                <form onSubmit={handleSubmit} className="auth-form reset-form">
+                <form onSubmit={handleSubmit} className="auth-form">
                     <div className="form-group">
-                        <label>Email:</label>
-                        <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required readOnly={emailLocked} />
-                        {emailLocked && <small style={{ display: 'block', marginTop: 6, color: '#666' }}></small>}
+                        <label>Email</label>
+                        <input
+                            type="email"
+                            value={email}
+                            onChange={(e) => !emailLocked && setEmail(e.target.value)}
+                            required
+                            readOnly={emailLocked}
+                            placeholder="you@example.com"
+                        />
+                        {emailLocked && <small className="locked-hint">Email đã được xác nhận từ liên kết</small>}
                     </div>
 
                     <div className="form-group">
-                        <label>Mã đặt lại (nếu có):</label>
-                        <input type="text" value={code} onChange={(e) => setCode(e.target.value)} placeholder="123456" />
+                        <label>Mật khẩu mới</label>
+                        <input
+                            type="password"
+                            value={newPassword}
+                            onChange={(e) => setNewPassword(e.target.value)}
+                            required
+                            placeholder="8+ ký tự, chữ hoa, số, ký tự đặc biệt"
+                        />
+                        <small className="password-hint">
+                            Yêu cầu: 8+ ký tự, 1 chữ hoa, 1 số, 1 ký tự đặc biệt
+                        </small>
                     </div>
-
-                    {/* hidden token keeps token in payload but not shown in UI */}
-                    <input type="hidden" value={token} />
 
                     <div className="form-group">
-                        <label>Mật khẩu mới:</label>
-                        <input type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} required />
+                        <label>Xác nhận mật khẩu</label>
+                        <input
+                            type="password"
+                            value={confirm}
+                            onChange={(e) => setConfirm(e.target.value)}
+                            required
+                            placeholder="Nhập lại mật khẩu mới"
+                        />
                     </div>
 
-                    <div className="form-group">
-                        <label>Xác nhận mật khẩu:</label>
-                        <input type="password" value={confirm} onChange={(e) => setConfirm(e.target.value)} required />
-                    </div>
-
-                    <button type="submit" disabled={loading} className="submit-button">
+                    <button type="submit" disabled={loading} className="btn primary">
                         {loading ? 'Đang xử lý...' : 'Đặt lại mật khẩu'}
                     </button>
                 </form>
-                <p className="forgot-link" style={{ marginTop: 12 }}>
-                    <Link to="/login"> Quay lại đăng nhập</Link>
+
+                <p className="auth-link">
+                    <Link to="/login">Quay lại đăng nhập</Link>
                 </p>
             </div>
         </div>

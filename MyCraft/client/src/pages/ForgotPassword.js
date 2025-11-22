@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import axios from 'axios';
+import api from '../utils/api';
 import { Link } from 'react-router-dom';
 import '../assets/styles/forgotpassword.css';
 
@@ -22,7 +23,7 @@ function ForgotPassword() {
         setMessage(null);
         setLoading(true);
         try {
-            const resp = await axios.post('http://localhost:5000/api/auth/forgot-password', { email: email.trim() });
+            const resp = await api.post('/auth/forgot-password', { email: email.trim() });
             // Show clearer user-facing message
             const successMsg = resp.data?.message || 'Yêu cầu đã được gửi. Vui lòng kiểm tra hộp thư (bao gồm Spam) để tiếp tục.';
             setMessage(successMsg);

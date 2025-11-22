@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams, Link } from 'react-router-dom';
 import axios from 'axios';
+import api from '../utils/api';
 import { useAuth } from '../hooks/useAuth';
 
 function ProductDetail() {
@@ -19,7 +20,7 @@ function ProductDetail() {
         const fetchProduct = async () => {
             setLoading(true);
             try {
-                const response = await axios.get(`http://localhost:5000/api/products/${id}`);
+                const response = await api.get(`/products/${id}`);
                 if (isMounted) {
                     setProduct(response.data);
                     setError(null);
@@ -42,8 +43,8 @@ function ProductDetail() {
             return;
         }
         try {
-            await axios.post(
-                'http://localhost:5000/api/cart',
+            await api.post(
+                '/cart',
                 { productId: id, quantity: parseInt(quantity) },
                 // { headers: { 'user-id': user.userId } }
                 { headers: { Authorization: `Bearer ${token}` } }

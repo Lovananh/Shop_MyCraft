@@ -61,7 +61,7 @@ router.post('/register', async (req, res) => {
         // send verification email (best-effort)
         try {
             // Prefer sending user to client verification page; also include a short numeric code in email
-            const serverBase = process.env.BASE_URL || `http://localhost:${process.env.PORT || 5000}`;
+            const serverBase = process.env.REACT_APP_API_URL || 'http://localhost:5000';
             const verifyPath = `/api/auth/verify?token=${verificationToken}&email=${encodeURIComponent(user.email)}`;
             const verifyUrl = `${serverBase}${verifyPath}`;
 
@@ -191,7 +191,7 @@ router.post('/resend-verification', async (req, res) => {
         await user.save();
 
         try {
-            const serverBase = process.env.BASE_URL || `http://localhost:${process.env.PORT || 5000}`;
+            const serverBase = process.env.REACT_APP_API_URL || 'http://localhost:5000';
             const verifyPath = `/api/auth/verify?token=${verificationToken}&email=${encodeURIComponent(user.email)}`;
             const verifyUrl = `${serverBase}${verifyPath}`;
             const html = `

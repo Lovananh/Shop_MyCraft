@@ -19,6 +19,7 @@ import PaymentCancel from './pages/PaymentCancel';
 import Profile from './pages/Profile';
 import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
+import ChangePassword from './pages/ChangePassword'
 
 // demo web an toan
 import UploadDemo from './pages/UploadDemo';
@@ -34,6 +35,7 @@ function App() {
                 <Route path="/profile" element={<Profile />} />
                 <Route path="/forgot-password" element={<ForgotPassword />} />
                 <Route path="/reset-password" element={<ResetPassword />} />
+                <Route path="/change-password" element={<ChangePassword />} />
 
 
                 <Route path="/products" element={<ProtectedRoute role="user"><ProductList /></ProtectedRoute>} />

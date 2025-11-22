@@ -4,14 +4,15 @@ import { useNavigate, Link } from 'react-router-dom';
 import api from '../utils/api';
 import '../assets/styles/profile.css';
 import { useAuth } from '../hooks/useAuth';
-import { 
-    FaUser, FaEnvelope, FaMobile, FaMapMarkerAlt, 
-    FaShoppingBag, FaKey, FaHeadset, FaEdit, 
-    FaMobileAlt} from 'react-icons/fa';
+import {
+    FaUser, FaEnvelope, FaMobile, FaMapMarkerAlt,
+    FaShoppingBag, FaKey, FaHeadset, FaEdit,
+    FaMobileAlt
+} from 'react-icons/fa';
 
 function Profile() {
     const [userInfo, setUserInfo] = useState({
-        username: '', name: '', email: '', address: '', phone: '', 
+        username: '', name: '', email: '', address: '', phone: '',
         avatar: 'https://place.dog/100/100', // fallback
     });
     const [isEditing, setIsEditing] = useState(false);
@@ -23,14 +24,34 @@ function Profile() {
     const navigate = useNavigate();
     const { token, logout } = useAuth();
 
+    // === HÀM HIỂN THỊ THÔNG BÁO TỰ MẤT SAU 4 GIÂY (CẢ SUCCESS & ERROR) ===
+    const showMessage = (message, type = 'success') => {
+        if (type === 'success') {
+            setSuccess(message);
+            setError(null);
+            setTimeout(() => setSuccess(null), 4000);
+        } else {
+            setError(message);
+            setSuccess(null);
+            setTimeout(() => setError(null), 4000); // ← Lỗi cũng tự mất
+        }
+    };
+
+    // === LOAD PROFILE KHI CÓ TOKEN ===
     useEffect(() => {
-        if (token === null) return;
         if (!token) {
-            navigate('/login', { state: { message: 'Vui lòng đăng nhập' } });
-            return;
+            // Chờ token xuất hiện trong localStorage (trường hợp vừa đăng nhập)
+            const interval = setInterval(() => {
+                const stored = localStorage.getItem('user');
+                if (stored) {
+                    clearInterval(interval);
+                    fetchUserProfile();
+                }
+            }, 100);
+            return () => clearInterval(interval);
         }
         fetchUserProfile();
-    }, [token, navigate]);
+    }, [token]);
 
     const fetchUserProfile = async () => {
         setLoading(true);
@@ -43,7 +64,7 @@ function Profile() {
             setError(null);
         } catch (err) {
             const msg = err.response?.data?.message || 'Không thể tải thông tin';
-            setError(msg);
+            showMessage(msg, 'error');
             if (err.response?.status === 401) logout();
         } finally {
             setLoading(false);
@@ -65,11 +86,10 @@ function Profile() {
                 phone: userInfo.phone,
             });
             await fetchUserProfile();
-            setSuccess('Cập nhật thành công!');
+            showMessage('Cập nhật thành công!');
             setIsEditing(false);
-            setTimeout(() => setSuccess(null), 3000);
         } catch (err) {
-            setError(err.response?.data?.message || 'Lỗi cập nhật');
+            showMessage(err.response?.data?.message || 'Lỗi cập nhật', 'error');
         } finally {
             setLoading(false);
         }
@@ -87,15 +107,14 @@ function Profile() {
             const res = await api.post('/profile/avatar', formData, {
                 headers: { 'Content-Type': 'multipart/form-data' }
             });
-            // Backend trả về { avatar: "http://localhost:5000/uploads/avatars/xxx.jpg" }
             setUserInfo(prev => ({
                 ...prev,
                 avatar: res.data.avatar + '?t=' + Date.now() // Cache busting
             }));
-            setSuccess('Đổi ảnh thành công!');
-            setTimeout(() => setSuccess(null), 3000);
+            showMessage('Đổi ảnh thành công!');
         } catch (err) {
-            setError(err.response?.data?.message || 'Lỗi upload ảnh');
+            const msg = err.response?.data?.message || 'Lỗi upload ảnh';
+            showMessage(msg, 'error'); // ← Lỗi magic bytes cũng tự mất sau 4 giây
         } finally {
             setLoading(false);
         }
@@ -124,6 +143,7 @@ function Profile() {
                         </button>
                     </div>
 
+                    {/* THÔNG BÁO – ĐÃ ĐƯỢC TỐI ƯU */}
                     {success && <div className="alert success">Success: {success}</div>}
                     {error && <div className="alert error">Error: {error}</div>}
                     {loading && <div className="alert loading">Đang xử lý...</div>}

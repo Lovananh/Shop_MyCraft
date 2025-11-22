@@ -3,9 +3,14 @@ const express = require('express');
 const router = express.Router();
 const User = require('../models/User');
 const verifyToken = require('../middleware/verifyToken');
-const upload = require('../middleware/upload');
+const { upload, validateImage } = require('../middleware/uploadAvatar');
+const fs = require('fs').promises;
+const path = require('path');
+const bcrypt = require('bcrypt');
 
-//lẤY PROFILE
+const AVATAR_DIR = path.join(__dirname, '../uploads/avatars');
+fs.mkdir(AVATAR_DIR, { recursive: true }).catch(() => { });
+
 router.get('/', verifyToken, async (req, res) => {
     try {
         const user = await User.findById(req.user.userId).select('-password');
@@ -16,87 +21,75 @@ router.get('/', verifyToken, async (req, res) => {
             username: user.username,
             name: user.name || '',
             email: user.email || '',
-            address: user.address || '',
             phone: user.phone || '',
-            avatar: user.avatar || 'https://place.dog/100/100',
-            role: user.role,
+            address: user.address || '',
+            avatar: user.avatar || 'https://place.dog/300/300',
+            role: user.role
         });
     } catch (err) {
-        console.error('Lỗi lấy profile:', err);
         res.status(500).json({ message: 'Lỗi server' });
     }
 });
 
-//CẬP NHẬT PROFILe
 router.put('/', verifyToken, async (req, res) => {
-    const { name, address, phone, email } = req.body;
-
-    if (name !== undefined && !/^[a-zA-ZÀ-ỹ\s]{2,100}$/.test(name)) {
-        return res.status(400).json({ message: 'Tên không hợp lệ' });
-    }
-    if (phone && !/^(?:\+84|0)(?:3[2-9]|5[689]|7[06-9]|8[1-9]|9[0-9])[0-9]{7}$/.test(phone)) {
-        return res.status(400).json({ message: 'SĐT không hợp lệ' });
-    }
+    const { name, email, phone, address } = req.body;
+    const updates = {};
+    if (name !== undefined) updates.name = name;
+    if (email !== undefined) updates.email = email;
+    if (phone !== undefined) updates.phone = phone;
+    if (address !== undefined) updates.address = address;
 
     try {
-        const updates = {};
-        if (name !== undefined) updates.name = name;
-        if (address !== undefined) updates.address = address;
-        if (phone !== undefined) updates.phone = phone;
-        if (email !== undefined) updates.email = email;
-
-        // Nếu đổi email, kiểm tra định dạng và unique
-        if (email !== undefined) {
-            const emailRegex = /^\S+@\S+\.\S+$/;
-            if (!emailRegex.test(email)) return res.status(400).json({ message: 'Email không hợp lệ' });
-            const existing = await User.findOne({ email });
-            if (existing && existing._id.toString() !== req.user.userId) {
-                return res.status(400).json({ message: 'Email đã tồn tại' });
-            }
-        }
-
-        const user = await User.findByIdAndUpdate(
-            req.user.userId,
-            updates,
-            { new: true, runValidators: true }
-        ).select('-password');
-
-        if (!user) return res.status(404).json({ message: 'Không tìm thấy người dùng' });
-
+        const user = await User.findByIdAndUpdate(req.user.userId, updates, { new: true }).select('-password');
         res.json({
-            _id: user._id,
-            username: user.username,
             name: user.name || '',
             email: user.email || '',
-            address: user.address || '',
             phone: user.phone || '',
-            avatar: user.avatar || 'https://place.dog/100/100',
-            role: user.role,
+            address: user.address || '',
+            avatar: user.avatar || 'https://place.dog/300/300'
         });
     } catch (err) {
-        console.error('Lỗi cập nhật profile:', err);
-        res.status(500).json({ message: 'Lỗi server' });
+        res.status(500).json({ message: 'Lỗi cập nhật' });
     }
 });
 
-// === UPLOAD AVATAR ===
 router.post('/avatar', verifyToken, upload.single('avatar'), async (req, res) => {
+    if (!req.file) return res.status(400).json({ message: 'Chưa chọn ảnh' });
+
+    if (!validateImage(req.file.buffer, req.file.mimetype)) {
+        return res.status(400).json({ message: 'File không hợp lệ (magic bytes sai)' });
+    }
+
+    const ext = req.file.mimetype === 'image/jpeg' ? 'jpg' : req.file.mimetype.split('/')[1];
+    const filename = `${req.user.userId}-${Date.now()}-${Math.random().toString(36).slice(2, 9)}.${ext}`;
+    const filepath = path.join(AVATAR_DIR, filename);
+
     try {
-        if (!req.file) return res.status(400).json({ message: 'Chưa chọn ảnh' });
-
-        const avatarUrl = `http://localhost:5000/uploads/avatars/${req.file.filename}`;
-        const user = await User.findByIdAndUpdate(
-            req.user.userId,
-            { avatar: avatarUrl },
-            { new: true }
-        ).select('avatar');
-
-        if (!user) return res.status(404).json({ message: 'Không tìm thấy người dùng' });
-
-        res.json({ avatar: user.avatar });
+        await fs.writeFile(filepath, req.file.buffer);
+        const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+        const avatarUrl = `${API_URL}/uploads/avatars/${filename}`
+        await User.findByIdAndUpdate(req.user.userId, { avatar: avatarUrl });
+        res.json({ avatar: avatarUrl });
     } catch (err) {
-        console.error('Lỗi upload avatar:', err);
-        res.status(500).json({ message: 'Lỗi upload ảnh' });
+        console.error('Upload avatar error:', err);
+        res.status(500).json({ message: 'Lỗi lưu ảnh' });
+    }
+});
+
+router.put('/password', verifyToken, async (req, res) => {
+    const { currentPassword, newPassword } = req.body;
+    if (!currentPassword || !newPassword) return res.status(400).json({ message: 'Thiếu thông tin' });
+
+    try {
+        const user = await User.findById(req.user.userId);
+        const match = await bcrypt.compare(currentPassword, user.password);
+        if (!match) return res.status(400).json({ message: 'Mật khẩu cũ không đúng' });
+
+        user.password = await bcrypt.hash(newPassword, 10);
+        await user.save();
+        res.json({ message: 'Đổi mật khẩu thành công' });
+    } catch (err) {
+        res.status(500).json({ message: 'Lỗi server' });
     }
 });
 
