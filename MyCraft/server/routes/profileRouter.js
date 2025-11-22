@@ -66,7 +66,8 @@ router.post('/avatar', verifyToken, upload.single('avatar'), async (req, res) =>
 
     try {
         await fs.writeFile(filepath, req.file.buffer);
-        const avatarUrl = `${process.env.BASE_URL || 'http://localhost:5000'}/uploads/avatars/${filename}`;
+        const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+        const avatarUrl = `${API_URL}/uploads/avatars/${filename}`
         await User.findByIdAndUpdate(req.user.userId, { avatar: avatarUrl });
         res.json({ avatar: avatarUrl });
     } catch (err) {

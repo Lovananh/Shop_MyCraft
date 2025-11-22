@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import axios from 'axios';
+import api from '../utils/api';
 import { useAuth } from '../hooks/useAuth';
 
 function ProductList() {
@@ -23,7 +24,7 @@ function ProductList() {
         const fetchProducts = async () => {
             setLoading(true);
             try {
-                const response = await axios.get('http://localhost:5000/api/products', {
+                const response = await api.get('/products', {
                     // headers: { 'user-id': user.userId },
                     headers: { Authorization: `Bearer ${token}` }
                 });
@@ -51,8 +52,8 @@ function ProductList() {
             return;
         }
         try {
-            await axios.post(
-                'http://localhost:5000/api/cart',
+            await api.post(
+                '/cart',
                 { productId, quantity: 1 },
                 // { headers: { 'user-id': user.userId } }
                 { headers: { Authorization: `Bearer ${token}` } }

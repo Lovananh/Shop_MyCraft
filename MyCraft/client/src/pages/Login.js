@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import axios from 'axios';
+import api from '../utils/api';
 import { useAuth } from '../hooks/useAuth';
 
 function Login() {
@@ -39,7 +40,7 @@ function Login() {
         try {
             console.log('Gửi đăng nhập:', { username, password });
 
-            const response = await axios.post('http://localhost:5000/api/auth/login', {
+            const response = await api.post('/auth/login', {
                 username: username.trim(),
                 password,
             });

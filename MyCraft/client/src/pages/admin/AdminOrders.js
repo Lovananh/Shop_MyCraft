@@ -23,7 +23,7 @@ function AdminOrders() {
         setLoading(true);
         setError(null);
         try {
-            const res = await api.get('http://localhost:5000/api/orders/all');
+            const res = await api.get('/orders/all');
             const sortedOrders = (res.data || []).sort(
                 (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
             );
@@ -53,10 +53,8 @@ function AdminOrders() {
         if (!window.confirm(`Cập nhật trạng thái thành "${statusText}"?`)) return;
 
         try {
-            const res = await api.put(
-                `http://localhost:5000/api/orders/${orderId}/status`,
-                { status: newStatus }
-            );
+           const res = await api.put(`/orders/${orderId}/status`, { status: newStatus });
+
             setOrders(prev => prev.map(o => o.orderId === orderId ? res.data : o));
             alert('Cập nhật thành công!');
         } catch (err) {
