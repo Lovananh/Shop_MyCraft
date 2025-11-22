@@ -41,7 +41,7 @@ if (
   // Fallback: từ chối upload nếu chưa có Cloudinary
   storage = {
     _handleFile: (req, file, cb) => cb(new Error('Chưa cấu hình Cloudinary')),
-    _removeFile: () => {},
+    _removeFile: () => { },
   };
 }
 
