@@ -137,7 +137,11 @@ router.post('/login', async (req, res) => {
 
         res.json({
             token,
-            role: user.role
+            role: user.role,
+            userId: user._id,        // THÊM DÒNG NÀY
+            _id: user._id,           // THÊM DÒNG NÀY (để chắc chắn)
+            name: user.name,         // THÊM ĐỂ HIỂN THỊ TÊN TRONG CHAT
+            username: user.username  // THÊM ĐỂ HIỂN THỊ USERNAME TRONG CHAT
         });
 
     } catch (err) {

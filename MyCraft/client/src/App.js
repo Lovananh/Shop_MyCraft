@@ -20,7 +20,10 @@ import PaymentCancel from './pages/PaymentCancel';
 import Profile from './pages/Profile';
 import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
-import ChangePassword from './pages/ChangePassword'
+import ChangePassword from './pages/ChangePassword';
+
+import Messages from './pages/Messages';
+import AdminMessages from './pages/admin/AdminMessages';
 
 // demo web an toan
 import UploadDemo from './pages/UploadDemo';
@@ -56,6 +59,9 @@ function App() {
 
                 <Route path="/payment/success" element={<PaymentSuccess />} />
                 <Route path="/payment/cancel" element={<PaymentCancel />} />
+
+                <Route path="/messages" element={<ProtectedRoute role="user"><Messages /></ProtectedRoute>} />
+                <Route path="/admin/messages" element={<ProtectedRoute role="admin"><AdminMessages /></ProtectedRoute>} />
             </Routes>
         </Router>
     );
