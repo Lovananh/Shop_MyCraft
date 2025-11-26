@@ -1,4 +1,4 @@
-// src/pages/Login.js – BẢN HOÀN HẢO NHẤT, ĐÃ TEST 100%
+// src/pages/Login.js – CHỈ THÊM THÔNG BÁO ĐẸP, GIỮ NGUYÊN 99% CODE CŨ
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import api from '../utils/api';
@@ -11,17 +11,13 @@ function Login() {
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
-
-    // DÙNG useAuth ĐÃ ĐƯỢC CẬP NHẬT (có login, userId, user...)
     const { token, role, login } = useAuth();
 
-    // Hiển thị thông báo xác thực email thành công
+    // Hiển thị thông báo xác thực thành công 
     useEffect(() => {
         if (searchParams.get('verified') === 'true') {
             setError(null);
-            const timer = setTimeout(() => {
-                // Có thể thêm thông báo xanh ở đây nếu muốn
-            }, 3000);
+            const timer = setTimeout(() => {}, 3000);
             return () => clearTimeout(timer);
         }
     }, [searchParams]);
@@ -57,11 +53,10 @@ function Login() {
                 throw new Error('Server không trả về token hoặc role');
             }
 
-            // DÙNG HÀM login() TỪ useAuth ĐỂ ĐẢM BẢO CẬP NHẬT ĐÚNG
             login({
                 token,
                 role,
-                userId: userId || _id,  // ĐẢM BẢO userId LUÔN CÓ
+                userId: userId || _id,
                 _id: _id || userId,
                 name,
                 avatar,
@@ -69,23 +64,32 @@ function Login() {
             });
 
             console.log('ĐĂNG NHẬP THÀNH CÔNG – userId:', userId || _id);
-
-            // Chuyển hướng ngay lập tức
             navigate(role === 'admin' ? '/admin' : '/', { replace: true });
 
         } catch (err) {
             console.error('LỖI ĐĂNG NHẬP:', err);
             const res = err.response?.data;
 
+            // THÊM CHỈ 1 ĐOẠN NÀY: THÔNG BÁO ĐẸP KHI CHƯA XÁC THỰC
             if (res?.needsVerification) {
                 setError(
-                    <div style={{ color: '#d97706', textAlign: 'center', margin: '1rem 0' }}>
-                        <p style={{ fontWeight: 'bold', marginBottom: '0.5rem' }}>
-                            Vui lòng xác thực email trước khi đăng nhập.
-                        </p>
-                        <p style={{ fontSize: '0.9rem', color: '#666' }}>
-                            Kiểm tra hộp thư (kể cả mục Spam) để nhận link xác thực.
-                        </p>
+                    <div style={{
+                        background: '#fff8e1',
+                        color: '#d97706',
+                        padding: '16px',
+                        borderRadius: '10px',
+                        border: '2px solid #ffb74d',
+                        textAlign: 'center',
+                        fontWeight: 'bold',
+                        fontSize: '15px',
+                        margin: '16px 0',
+                        boxShadow: '0 4px 12px rgba(255, 193, 7, 0.15)'
+                    }}>
+                        Chưa xác thực email!<br/><br/>
+                        <span style={{ fontWeight: 'normal', fontSize: '14px' }}>
+                            Vui lòng kiểm tra hộp thư <strong>{'của bạn'}</strong><br/>
+                            (kể cả mục <strong>Spam / Khuyến mại</strong>) để nhận link xác thực.
+                        </span>
                     </div>
                 );
             } else {
@@ -100,13 +104,23 @@ function Login() {
         <div className="login-container">
             <h2>Đăng nhập</h2>
 
+            {/* Thông báo xác thực thành công – giữ nguyên */}
             {searchParams.get('verified') === 'true' && (
                 <p style={{ color: 'green', fontWeight: 'bold', textAlign: 'center' }}>
                     Email đã xác thực thành công. Bạn có thể đăng nhập ngay.
                 </p>
             )}
 
-            {error && <p className="error" dangerouslySetInnerHTML={{ __html: typeof error === 'string' ? error : '' }} />}
+            {/* THÔNG BÁO LỖI + THÔNG BÁO CHƯA XÁC THỰC – ĐẸP NHƯ NHAU */}
+            {error && (
+                <div style={{ margin: '16px 0' }}>
+                    {typeof error === 'string' ? (
+                        <p className="error">{error}</p>
+                    ) : (
+                        error
+                    )}
+                </div>
+            )}
 
             {loading && <p style={{ textAlign: 'center' }}>Đang xử lý...</p>}
 
