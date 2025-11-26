@@ -67,7 +67,7 @@ async function sendEmail({ to, subject, html, text }) {
 
 // Gửi email xác thực đăng ký
 async function sendVerificationEmail(to, token) {
-    const verifyUrl = `${process.env.BASE_URL || 'http://localhost:5000'}/api/auth/verify?token=${token}`;
+    const verifyUrl = `${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/auth/verify?token=${token}`;
 
     const html = `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 20px auto; padding: 30px; border: 1px solid #eee; border-radius: 12px; background:#fafafa; box-shadow: 0 4px 15px rgba(0,0,0,0.05);">
