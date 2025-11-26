@@ -360,7 +360,8 @@
     }
 }
 
-/* ==================== ADMIN OVERVIEW – 4 Ô MỖI DÒNG, SIÊU GỌN, KHÔNG ICON ==================== */
+/* overview */
+
 .overview-grid {
     display: grid;
     grid-template-columns: repeat(4, 1fr);

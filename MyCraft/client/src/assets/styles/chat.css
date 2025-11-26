@@ -2,7 +2,7 @@
 .chat-container {
     max-width: 900px;
     margin: 0 auto;
-    height: calc(100vh - 100px);
+    height: calc(100vh - 150px);
     background: white;
     border-radius: 16px;
     overflow: hidden;
@@ -12,10 +12,12 @@
 }
 
 .chat-header {
-    background-color: #4361ee;
+    background-color: #637be5;
     color: white;
-    padding: 1.8rem 1.5rem;
-    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 50px;
 }
 
 .chat-header h2 {
@@ -121,25 +123,16 @@
 
 .chat-input-area input {
     flex: 1;
-    padding: 16px 20px;
-    font-size: 1rem;
     border: 2px solid #e2e8f0;
-    border-radius: 30px;
     outline: none;
 }
 
-.chat-input-area input:focus {
-    border-color: #4361ee;
-    box-shadow: 0 0 0 4px rgba(67, 97, 238, 0.15);
-}
 
 .chat-input-area button {
     padding: 16px 32px;
     background: #4361ee;
     color: white;
     border: none;
-    border-radius: 30px;
-    font-weight: 600;
     cursor: pointer;
     display: flex;
     align-items: center;
