@@ -1,20 +1,14 @@
-// server/routes/authRoutes.js
 const express = require('express');
 const router = express.Router();
 const bcrypt = require('bcrypt');
 const User = require('../models/User');
-const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
-const { sendVerificationEmail } = require('../utils/mailer');
+const sendEmail = require('../utils/mailer');
 
-const JWT_SECRET = process.env.JWT_SECRET;
-
-// ==================== ĐĂNG KÝ (giữ nguyên validate của bạn) ====================
 router.post('/register', async (req, res) => {
     try {
         const { username, password, name, email, address, phone, role } = req.body;
 
-        // === VALIDATE GIỮ NGUYÊN 100% NHƯ FILE GỐC ===
         if (!username || !password || !name || !email) {
             return res.status(400).json({ message: 'Tên đăng nhập, mật khẩu, tên và email là bắt buộc' });
         }
@@ -44,55 +38,88 @@ router.post('/register', async (req, res) => {
         if (await User.findOne({ email })) {
             return res.status(400).json({ message: 'Email đã tồn tại' });
         }
-        // ============================================
 
         const hashedPassword = await bcrypt.hash(password, 10);
         const verificationToken = crypto.randomBytes(32).toString('hex');
+        const verificationCode = Math.floor(100000 + Math.random() * 900000).toString(); // 6-digit code
+        const verificationExpires = Date.now() + 24 * 60 * 60 * 1000; // 24 hours
 
         const user = new User({
             username,
             password: hashedPassword,
             name,
-            email: email.toLowerCase(),
+            email,
             address,
             phone,
             role: role || 'user',
             isVerified: false,
             verificationToken,
-            verificationExpires: Date.now() + 24 * 60 * 60 * 1000,
+            verificationExpires,
         });
         await user.save();
 
-        // === GỬI EMAIL SIÊU NGẮN – CHỈ 5 DÒNG ===
+        // send verification email (best-effort)
         try {
-            await sendVerificationEmail(user.email, verificationToken);
-            console.log(`Email xác thực đã gửi tới: ${user.email}`);
-        } catch (err) {
-            console.error('Lỗi gửi email xác thực:', err.message);
-            // Vẫn cho đăng ký tiếp, không block
+            // Prefer sending user to client verification page; also include a short numeric code in email
+            const serverBase = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+            const verifyPath = `/api/auth/verify?token=${verificationToken}&email=${encodeURIComponent(user.email)}`;
+            const verifyUrl = `${serverBase}${verifyPath}`;
+
+            const html = `
+                            <div style="font-family: Arial, sans-serif; line-height:1.6; color:#111">
+                                <h2>Xin chào ${user.name},</h2>
+                                <p>Cảm ơn bạn đã đăng ký tài khoản trên MyCraft.</p>
+                                <p>Mã xác thực (dùng nếu cần): <strong style="font-size:20px">${verificationCode}</strong></p>
+                                <p>Để kích hoạt tài khoản, hãy bấm vào nút bên dưới hoặc dán mã vào trang xác thực trên ứng dụng:</p>
+                                <p style="text-align:center; margin:20px 0">
+                                    <a href="${verifyUrl}" style="background:#1976d2;color:#fff;padding:12px 20px;border-radius:6px;text-decoration:none;display:inline-block">Xác nhận email</a>
+                                </p>
+                                <p>Liên kết và mã hợp lệ trong 24 giờ.</p>
+                                <p>Nếu bạn không yêu cầu đăng ký này, hãy bỏ qua email này.</p>
+                            </div>
+                        `;
+
+            const text = `Xin chao ${user.name}\n\nMã xác thực: ${verificationCode}\n\nMở link để xác thực: ${verifyUrl}\n\nLiên kết hợp lệ trong 24 giờ.`;
+
+            await sendEmail({ to: user.email, subject: 'Xác nhận email - MyCraft', html, text });
+        } catch (mailErr) {
+            console.error('Không gửi được email xác nhận:', mailErr);
         }
-        // =======================================
 
-            res.status(201).json({
-                message: 'Đăng ký thành công! Vui lòng kiểm tra email để xác thực.',
-                user: { username: user.username, email: user.email, role: user.role }
-            });
-
+        res.status(201).json({
+            _id: user._id,
+            username: user.username,
+            email: user.email,
+            role: user.role,
+            message: 'Đăng ký thành công. Vui lòng kiểm tra email để xác nhận tài khoản.'
+        });
     } catch (err) {
         console.error('Lỗi đăng ký:', err);
+        if (err.code === 11000) {
+            const dupKey = Object.keys(err.keyValue || {})[0] || 'Trường';
+            return res.status(400).json({ message: `${dupKey} đã tồn tại` });
+        }
         res.status(500).json({ message: 'Lỗi server' });
     }
 });
 
-// ==================== ĐĂNG NHẬP  ====================
+const jwt = require('jsonwebtoken');
+const JWT_SECRET = process.env.JWT_SECRET;
+
 router.post('/login', async (req, res) => {
     try {
         const { username, password } = req.body;
-        const user = await User.findOne({ username });
 
+        const user = await User.findOne({ username });
         if (!user || !(await bcrypt.compare(password, user.password))) {
             return res.status(400).json({ message: 'Tên đăng nhập hoặc mật khẩu không đúng' });
         }
+
+        // KIỂM TRA XÁC THỰC EMAIL
+        // Chỉ cho phép đăng nhập nếu:
+        // 1. Tài khoản đã xác thực (isVerified = true)
+        // 2. HOẶC tài khoản được tạo bởi admin (thường là admin hoặc tài khoản cũ)
+        // → Dùng một field mới: `createdByAdmin` để phân biệt
 
         if (!user.isVerified && !user.createdByAdmin) {
             return res.status(403).json({
@@ -108,7 +135,14 @@ router.post('/login', async (req, res) => {
             { expiresIn: '7d' }
         );
 
-        res.json({ token, role: user.role });
+        res.json({
+            token,
+            role: user.role,
+            userId: user._id,        // THÊM DÒNG NÀY
+            _id: user._id,           // THÊM DÒNG NÀY (để chắc chắn)
+            name: user.name,         // THÊM ĐỂ HIỂN THỊ TÊN TRONG CHAT
+            username: user.username  // THÊM ĐỂ HIỂN THỊ USERNAME TRONG CHAT
+        });
 
     } catch (err) {
         console.error('Lỗi đăng nhập:', err);
@@ -116,31 +150,78 @@ router.post('/login', async (req, res) => {
     }
 });
 
-// ==================== XÁC THỰC EMAIL ====================
+// Verify email link
 router.get('/verify', async (req, res) => {
     try {
-        const { token } = req.query;
-        if (!token) return res.status(400).json({ message: 'Thiếu token' });
+        const { token, email } = req.query;
+        if (!token || !email) return res.status(400).json({ message: 'Thiếu token hoặc email' });
 
-        const user = await User.findOne({
-            verificationToken: token,
-            verificationExpires: { $gt: Date.now() }
-        });
-
-        if (!user) return res.status(400).json({ message: 'Link xác thực không hợp lệ hoặc đã hết hạn' });
+        const user = await User.findOne({ email, verificationToken: token });
+        if (!user) return res.status(400).json({ message: 'Liên kết xác thực không hợp lệ' });
+        if (user.verificationExpires && user.verificationExpires < Date.now()) {
+            return res.status(400).json({ message: 'Liên kết xác thực đã hết hạn' });
+        }
 
         user.isVerified = true;
         user.verificationToken = undefined;
         user.verificationExpires = undefined;
         await user.save();
 
+        // Redirect to login page after successful verification
         const clientUrl = process.env.CLIENT_URL || 'http://localhost:3000';
-        res.redirect(`${clientUrl}/login?verified=true`);
-
+        return res.redirect(`${clientUrl}/login?verified=true`);
     } catch (err) {
         console.error('Lỗi verify:', err);
         res.status(500).json({ message: 'Lỗi server' });
     }
 });
+
+// Resend verification email
+router.post('/resend-verification', async (req, res) => {
+    try {
+        const { email } = req.body;
+        if (!email) return res.status(400).json({ message: 'Email là bắt buộc' });
+
+        const user = await User.findOne({ email });
+        if (!user) return res.status(400).json({ message: 'Không tìm thấy người dùng' });
+        if (user.isVerified) return res.status(400).json({ message: 'Tài khoản đã được xác thực' });
+
+        const verificationToken = crypto.randomBytes(32).toString('hex');
+        const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
+        const verificationExpires = Date.now() + 24 * 60 * 60 * 1000;
+        user.verificationToken = verificationToken;
+        user.verificationCode = verificationCode;
+        user.verificationExpires = verificationExpires;
+        await user.save();
+
+        try {
+            const serverBase = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+            const verifyPath = `/api/auth/verify?token=${verificationToken}&email=${encodeURIComponent(user.email)}`;
+            const verifyUrl = `${serverBase}${verifyPath}`;
+            const html = `
+                            <div style="font-family: Arial, sans-serif; line-height:1.6; color:#111">
+                                <h2>Xin chào ${user.name},</h2>
+                                <p>Mã xác thực: <strong style="font-size:20px">${user.verificationCode}</strong></p>
+                                <p>Nhấn nút bên dưới để xác nhận email:</p>
+                                <p style="text-align:center; margin:20px 0">
+                                    <a href="${verifyUrl}" style="background:#1976d2;color:#fff;padding:12px 20px;border-radius:6px;text-decoration:none;display:inline-block">Xác nhận email</a>
+                                </p>
+                                <p>Liên kết và mã hợp lệ trong 24 giờ.</p>
+                            </div>
+                        `;
+            const text = `Mã xác thực: ${user.verificationCode}\n\nMở link để xác thực: ${verifyUrl}`;
+            await sendEmail({ to: user.email, subject: 'Xác nhận email - MyCraft', html, text });
+        } catch (mailErr) {
+            console.error('Không gửi được email xác nhận:', mailErr);
+        }
+
+        res.json({ message: 'Đã gửi lại email xác thực (nếu email tồn tại).' });
+    } catch (err) {
+        console.error('Lỗi resend:', err);
+        res.status(500).json({ message: 'Lỗi server' });
+    }
+});
+
+
 
 module.exports = router;

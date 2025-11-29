@@ -72,8 +72,11 @@ app.use('/api/messages', require('./routes/messageRoutes')); // ← CHAT API
 
 // Cron job tự động hoàn thành đơn hàng
 require('./cron/autoComplete');
-// Mailer (SMTP Gmail - Nodemailer)
-require('./utils/mailer').initMailer();
+
+// Mailer (Resend)
+const mailer = require('./utils/mailer');
+if (typeof mailer.init === 'function') mailer.init();
+
 // KÍCH HOẠT HỆ THỐNG CHAT REALTIME – QUAN TRỌNG NHẤT!
 require('./socket/chatSocket')(io);
 
