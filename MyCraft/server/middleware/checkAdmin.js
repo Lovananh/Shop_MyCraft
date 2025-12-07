@@ -1,3 +1,4 @@
+// middleware/checkAdmin.js
 const verifyToken = require('./verifyToken');
 
 module.exports = (req, res, next) => {

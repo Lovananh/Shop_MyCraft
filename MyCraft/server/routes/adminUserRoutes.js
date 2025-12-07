@@ -1,3 +1,4 @@
+// server/routes/adminUserRoutes.js
 const express = require('express');
 const router = express.Router();
 const User = require('../models/User');
@@ -31,7 +32,7 @@ router.post('/', checkAdmin, async (req, res) => {
 
         const hashedPassword = await bcrypt.hash(password, 10);
         // Users created by admin are trusted — mark as verified so they don't need email confirmation
-        const user = new User({ username, name, email, phone, address, role: role || 'user', password: hashedPassword, isVerified: true,createdByAdmin: true });
+        const user = new User({ username, name, email, phone, address, role: role || 'user', password: hashedPassword, isVerified: true, createdByAdmin: true });
         await user.save();
 
         const { password: _, ...safeUser } = user.toObject();

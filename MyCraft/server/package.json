@@ -24,6 +24,7 @@
     "node-cron": "^4.2.1",
     "nodemailer": "^7.0.10",
     "resend": "^6.5.2",
+    "socket.io": "^4.8.1",
     "uuid": "^8.3.2"
   }
 }
