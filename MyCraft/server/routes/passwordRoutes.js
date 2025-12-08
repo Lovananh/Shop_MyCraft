@@ -27,7 +27,7 @@ router.post('/forgot-password', async (req, res) => {
 
         // Gửi email bằng SMTP
         await sendPasswordResetEmail(user.email, user.name, resetToken, resetCode);
-
+        console.log(`Mã reset password gửi tới ${user.email}: ${resetCode}`);
         res.json({ message: genericMsg });
     } catch (err) {
         console.error('Lỗi forgot-password:', err);
