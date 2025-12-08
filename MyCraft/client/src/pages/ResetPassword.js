@@ -8,6 +8,7 @@ function ResetPassword() {
     const [searchParams] = useSearchParams();
     const navigate = useNavigate();
     const [email, setEmail] = useState('');
+    const [code, setCode] = useState('');
     const [emailLocked, setEmailLocked] = useState(false);
     const [token, setToken] = useState('');
     const [newPassword, setNewPassword] = useState('');
@@ -52,6 +53,7 @@ function ResetPassword() {
             await api.post('/auth/reset-password', {
                 email: email.trim(),
                 token,
+                code: code.trim(),
                 newPassword
             });
 
@@ -86,6 +88,39 @@ function ResetPassword() {
                             placeholder="you@example.com"
                         />
                         {emailLocked && <small className="locked-hint">Email đã được xác nhận từ liên kết</small>}
+                    </div>
+
+                    <div className="form-group">
+                        <label>Mã xác thực (6 số)</label>
+                        <div className="code-input-container">
+                            {[...Array(6)].map((_, i) => (
+                                <input
+                                    key={i}
+                                    type="text"
+                                    maxLength="1"
+                                    value={code[i] || ''}
+                                    onChange={(e) => {
+                                        const newCode = code.split('');
+                                        newCode[i] = e.target.value.replace(/\D/g, '');
+                                        setCode(newCode.join(''));
+                                        // Tự động nhảy ô
+                                        if (e.target.value && i < 5) {
+                                            e.target.nextSibling?.focus();
+                                        }
+                                    }}
+                                    onKeyDown={(e) => {
+                                        if (e.key === 'Backspace' && !code[i] && i > 0) {
+                                            e.target.previousSibling?.focus();
+                                        }
+                                    }}
+                                    className={`code-digit ${code[i] ? 'filled' : ''}`}
+                                    style={{ fontFamily: 'monospace' }}
+                                />
+                            ))}
+                        </div>
+                        <div className="code-hint">
+                            Kiểm tra email (kể cả mục <strong>Spam/Khuyến mại</strong>) để lấy mã
+                        </div>
                     </div>
 
                     <div className="form-group">
